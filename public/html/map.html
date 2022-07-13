@@ -1,0 +1,473 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<link rel="stylesheet" href="/css/kict.css" type="text/css">
+<link rel="stylesheet" href="/css/core.css" type="text/css">
+<link rel="stylesheet" href="/css/img_input.css" type="text/css">
+<link rel="stylesheet" href="/css/jquery.mCustomScrollbar.min.css" type="text/css">
+<script src="/js/lib/jquery-1.8.3.js" type="text/javascript"></script>
+<script src="/js/lib/jquery-ui-1.9.2.custom.min.js"></script>
+<script src="/js/lib/ul_ctrl.js" type="text/javascript"></script>
+<script src="/js/lib/jquery.mCustomScrollbar.min.js" type="text/javascript"></script>
+<script src="/js/stt.js" type="text/javascript"></script>
+
+<!-- Include the CesiumJS JavaScript and CSS files -->
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.93/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.93/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+
+<title>Cesium기반 DT플랫폼</title>
+</head>
+
+<body>
+<div class="cesium_container" id="cesiumContainer"></div>
+<div class="map_wrap"><!-- css에 background: url("../img/map_view.png"); 삭제 미리보기용 배경 -->	
+	<div class="top_wrap">
+	<h1>3D DigitalTwin</h1>		
+	</div>
+	<!-- 왼쪽 메인 메뉴-->
+	<div class="navi">
+		<ul id="right_tab_btn">
+			<li class="m_1 active" id="t_map">지도</li>
+			<li class="m_2" id="t_search">검색</li>
+			<li class="m_3" id="t_infra">객체관리</li>
+			<li class="m_4" id="t_mapadmin">레이어추가</li>
+			<li class="m_5" id="t_algorithm">현실정보</li>
+		</ul>
+	</div>
+	<!-- 메뉴 컨텐츠-->
+	<div class="contents">		
+		<div class="rightTab" id="d_map">
+			<h1>
+				<span>지도 호출</span>
+			</h1>			
+			<div class="sub_container js_scroll">
+				<h3>Cesium 지도 호출</h3>
+				<button class="btn_1" onclick="callCesiumMap()"">지도호출</button>
+				<h3>지도 툴바 구성 옵션</h3>
+				<ul class="map_base">
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="selectFlag" checked>
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">건물선택</span>
+					</li>		
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="timeLineFlag" value="dd">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">타임라인</span>
+					</li>
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="animationFlag">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">시계열</span>
+					</li>							
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="navigationFlag">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">도움말</span>
+					</li>					
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="geocoderFlag">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">기본검색</span>
+					</li>					
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="sceneModeFlag">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">씬모드선택</span>
+					</li>					
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="baseLayerFlag">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">지도선택</span>
+					</li>					
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="animationFlag2">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">애니메이션</span>
+					</li>										
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="shadowFlag">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">객체 그림자</span>
+					</li>										
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="terrainShadowFlag">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">지형 그림자</span>
+					</li>										
+				</ul>		
+				<h3>지형 호출 옵션</h3>
+				<ul class="map_base">
+					<li>						
+						<label class="input_switch">
+							<input type="checkbox" id="warterFlag">
+							<span class="input_slider round"></span>
+						</label>
+						<span class="title">바다 표현</span>
+					</li>				
+			</div>			
+		</div>
+		<!-- ★★★★★★대메뉴2_검색 ★★★★★★ -->
+		<div class="rightTab hide" id="d_search">						
+			<!-- 탭시작 -->
+			<div id="container">
+				<ul class="tabs">
+					<li rel="tab1" class="active">좌표로 이동</li>
+					<li rel="tab2">네이버위치검색</li>										
+				</ul>
+				<div class="tab_container">					
+					<div id="tab1" class="tab_content">						
+						<div class="sub2_container js_scroll">							
+							<h3>좌표로 카메라 이동</h3>
+							<ul class="map_base">
+								<li>									
+									<span class="s_title">경도</span>
+									<input type="text" class="search_txt" id="camLon" placeholder="입력해주세요" value="127.1">
+								</li>
+								<li>									
+									<span class="s_title">위도</span>
+									<input type="text" class="search_txt" id="camLat" placeholder="입력해주세요" value="37.5">
+								</li>
+								<li>									
+									<span class="s_title">높이</span>
+									<input type="text" class="search_txt" id="camAlt" placeholder="입력해주세요" value="1000">
+								</li>								
+							</ul>
+							<button class="btn_1" onclick="moveCamera()">위치 이동</button>
+							<h3>클릭지점 좌표</h3>
+							<ul class="underground_Facility">
+								<li>
+									<span class="color_legend" style="background: #ffff96"></span>
+									클릭지점 좌표 이벤트
+									<label class="input_switch fl_r">
+										<input type="checkbox" onchange="setMouseLClickEvent(this.checked)">
+										<span class="input_slider round"></span>
+									</label>
+								</li>
+								<li>	
+									<span class="color_legend" style="background: #ffff"></span>
+									경도				
+									<input type="text" class="search_txt" id="evntLon" placeholder="입력해주세요" >
+								</li>
+								<li>		
+									<span class="color_legend" style="background: #ffff"></span>
+									위도				
+									<input type="text" class="search_txt" id="evntLat" placeholder="입력해주세요" >
+								</li>
+								<!-- <li>									
+									<span class="s_title">높이</span>
+									<input type="text" class="search_txt" id="evntAlt" placeholder="입력해주세요">
+								</li>								  -->
+							</ul>							
+						</div>
+					</div>					
+					<div id="tab2" class="tab_content">						
+						<span class="search">
+							<input type="text" placeholder="검색어를 입력해 주세요">
+							<button>검색</button>
+						</span>
+						<h2><span>종로구 수송동</span>검색 결과 입니다.</h2>
+						<div class="search_list js_scroll">
+							<ul class="s_location">
+								<!-- 위치검색 결과 반복_1~10개까지 그이후 다음페이지 -->
+								<li class="title active">
+									<ul>
+										<li>이름</li>
+										<li>지번</li>
+										<li class="addr">도로명</li>
+										<li class="phone">우편번호or전화번호 <span>| 대분류 &gt; 소분류</span></li>
+									</ul>
+								</li>								 	
+							</ul>
+						</div>
+						<div class="s_paging_wrap">
+							<ul class="s_paging">
+								<li>◀</li>
+								<li>1</li>
+								<li>2</li>
+								<li>3</li>
+								<li>4</li>
+								<li>5</li>
+								<li>6</li>
+								<li>7</li>
+								<li>8</li>
+								<li>9</li>
+								<li>10</li>
+								<li>▶</li>
+							</ul>
+						</div>
+					</div>					
+				</div>
+				<!-- .tab_container -->
+			</div>
+			<!-- #container -->
+		</div>
+		<!-- ★★★★★★대메뉴3_건물★★★★★★ -->
+		<div class="rightTab hide" id="d_infra">			
+			<ul class="tabs_2">
+				<li rel="tab3" class="active">객체 관리</li>
+				<li rel="tab4">객체 이동&이벤트</li>										
+			</ul>
+			<div class="tab_container">					
+			<div id="tab3" class="tab_content_2 js_scroll">					
+				<div class="sub2_container js_scroll">							
+				<h3>OSM 건물추가</h3>
+				<ul class="underground_Facility">
+					<li>
+						<span class="color_legend" style="background: #ffff96"></span>
+						OSM 건물
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="addOSMBuilding(this.checked)">
+							<span class="input_slider round"></span>
+						</label>
+					</li>
+					<li>
+						<span class="color_legend" style="background: #ffff96"></span>
+						건물 삭제
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="removeOSMBuilding(this.checked)">
+							<span class="input_slider round"></span>
+						</label>
+					</li>					
+					<li>
+						<span class="color_legend" style="background: #ffff96"></span>
+						ion asset 건물 추가
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="addAssetBuilding(this.checked)">
+							<span class="input_slider round"></span>
+						</label>
+					</li>		
+					<li>
+						<span class="color_legend" style="background: #ffff96"></span>
+						ion asset 트럭 추가
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="addAssetTruck(this.checked)">
+							<span class="input_slider round"></span>
+						</label>
+					</li>				
+				</ul>
+				<h3>파일 객체 추가</h3>
+				<ul class="underground_Facility">					
+					<li>
+						<span class="color_legend" style="background: #c5e0b4"></span>
+						비행기
+						<label class="input_switch fl_r">
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'Cesium_Air', 250)">
+							<span class="input_slider round"></span>
+						</label>
+					</li>					
+					<li>
+						<span class="color_legend" style="background: #c5e0b4"></span>
+						사람
+						<label class="input_switch fl_r">
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'Cesium_Man', 200)">							
+							<span class="input_slider round"></span>
+						</label>
+					</li>						
+					<li>
+						<span class="color_legend" style="background: #c5e0b4"></span>
+						드론
+						<label class="input_switch fl_r">
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'CesiumDrone', 150)">														
+							<span class="input_slider round"></span>
+						</label>
+					</li>	
+					<li>
+						<span class="color_legend" style="background: #c5e0b4"></span>
+						우유트럭
+						<label class="input_switch fl_r">
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'CesiumMilkTruck', 100)">																					
+							<span class="input_slider round"></span>
+						</label>
+					</li>	
+					<li>
+						<span class="color_legend" style="background: #c5e0b4"></span>
+						트럭
+						<label class="input_switch fl_r">
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'GroundVehicle', 80)">																												
+							<span class="input_slider round"></span>
+						</label>
+					</li>	
+					<button class="btn_1" onclick="removeAllEntity()">사용자 객체삭제</button>					
+				</ul>
+			</div>
+		</div>
+			<div id="tab4" class="tab_content_2 js_scroll">					
+				<div class="sub2_container js_scroll">							
+					<h3>애니메이션 설정</h3>
+					<ul class="underground_Facility">					
+						<li>
+							<span class="color_legend" style="background: #c5e0b4"></span>
+							애드벌룬
+							<label class="input_switch fl_r">
+								<input type="checkbox" onclick="addModelEntity(this.checked, 'CesiumBalloon', 100)">																																				
+								<span class="input_slider round"></span>
+							</label>
+						</li>			
+					</ul>
+					<button class="btn_2" onclick="playCarAnimation()">애니메이션 시작</button>
+					<button class="btn_2" onclick="stopCarAnimation()">애니메이션 멈춤</button>
+					<h3>마우스로 객체 추가&삭제</h3>
+					<ul class="underground_Facility">					
+						<li>
+							<span class="color_legend" style="background: #c5e0b4"></span>
+							우클릭 객체 삭제
+							<label class="input_switch fl_r">
+								<input type="checkbox" onclick="setMouseRClickEvent(this.checked, this.id)" id="RCL_DELETE" class="revtCl">
+								<span class="input_slider round"></span>
+							</label>
+						</li>
+						<li>
+							<span class="color_legend" style="background: #c5e0b4" ></span>
+							우클릭 객체 추가
+							<label class="input_switch fl_r">
+								<input type="checkbox" onclick="setMouseRClickEvent(this.checked, this.id)" id="RCL_MAKE" class="revtCl">
+								<span class="input_slider round"></span>
+							</label>
+						</li>				
+					</ul>
+					<button class="btn_1" onclick="removeAllEntity()">사용자 객체삭제</button>	
+				</div>
+			</div>
+		 </div>
+    	 </div>
+		<!-- ★★★★★★대메뉴4_베이스맵★★★★★★ -->
+		<div class="rightTab hide" id="d_mapadmin">
+			<h1>
+				<span>지도 관리</span>
+			</h1>
+			<div class="sub3_container js_scroll">
+				<h3>WMS 레이어 _ 브이월드</h3>
+				<ul class="underground_Facility">
+					<li>
+						<span class="color_legend" style="background: #43cf43"></span>
+						읍면동
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="addWmsLayer(this.checked, this.id)" id="lt_c_ademd">
+							<span class="input_slider round"></span>
+						</label>
+					</li>				
+					<li>
+						<span class="color_legend" style="background: #43cf43"></span>
+						지구단위 계획
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="addWmsLayer(this.checked, this.id)" id="lt_c_upisuq161">
+							<span class="input_slider round"></span>
+						</label>
+					</li>				
+					<li>
+						<span class="color_legend" style="background: #43cf43"></span>
+						수자원(대권역)
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="addWmsLayer(this.checked, this.id)" id="lt_c_wkmbbsn">
+							<span class="input_slider round"></span>
+						</label>
+					</li>				
+				</ul>
+				<h3>WFS 레이어 추가</h3>
+				<ul class="underground_Facility">
+					<li>
+						<span class="color_legend" style="background: #ffff"></span>
+						수자원(하천망)
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="addWfsLayer(this.checked, this.id)" id="lt_c_wkmstrm">
+							<span class="input_slider round"></span>
+						</label>
+					</li>	
+					<li>
+						<span class="color_legend" style="background: #ffff"></span>
+						교통노드
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="addWfsLayer(this.checked, this.id)" id="lt_p_moctnode">
+							<span class="input_slider round"></span>
+						</label>
+					</li>					
+				</ul>
+			</div>
+		</div>
+	<div class="rightTab hide" id="d_algorithm">
+		<ul class="tabs_3">
+			<li rel="tab5" class="active">현실 시뮬레이션</li>
+			<li rel="tab6">통계 표현</li>										
+		</ul>
+		<div class="tab_container">					
+			<div id="tab5" class="tab_content_3 js_scroll">					
+				<div class="sub2_container js_scroll">							
+					<h3>그림자 시뮬레이션</h3>
+					<ul class="underground_Facility">
+						<li>
+							<span class="color_legend" style="background: #ffff96"></span>
+							그림자 표현
+							<label class="input_switch fl_r">
+								<input type="checkbox" onchange="addShadowEffect(this.checked)">
+								<span class="input_slider round"></span>
+							</label>
+						</li>
+					</ul>
+					<button class="btn_2" onclick="startShadowSimulation()">시뮬레이션 시작</button>
+					<button class="btn_2" onclick="stopShadowSimulation()">시뮬레이션 멈춤</button><br/><br/>
+					<h3>날씨 시뮬레이션(애니메이션 ON 필수)</h3>					
+					<button class="btn_2" onclick="playSnowEffect()">눈 효과 적용</button>
+					<button class="btn_2" onclick="playRainEffect()">비 효과 적용</button>
+					하늘 밝기
+					<input type="range" max="1" min="-1" step="0.01" value="-0.2" style="width:80%" onchange="setSkyBright(this.value)"><br/>
+					가시 범위(안개)
+					<input type="range" max="0.005" min="0" step="0.0001" value="0.005" style="width:80%" onchange="setFogDensity(this.value)">
+					<button class="btn_1" onclick="removeWeatherEntity()"">기상 효과 제거</button>
+				</div>
+			</div>
+			<div id="tab6" class="tab_content_3 js_scroll hide">					
+				<div class="sub2_container js_scroll">							
+					<h3>전세계 인구통계(막대그래프)</h3>
+					<button class="btn_2" onclick="createSeriesSetter('1990')">1990년</button>
+					<button class="btn_2" onclick="createSeriesSetter('1995')">1995년</button>
+					<button class="btn_2" onclick="createSeriesSetter('2000')">2000년</button>
+					<button class="btn_2" onclick="createSeriesSetter(false)">데이터 삭제</button>
+
+					<h3>클러스터링 데이터(막대그래프)</h3>					
+					  <button class="btn_2" onclick="getClusterData()">데이터 불러오기</button>
+					  <button class="btn_2" onclick="removeClusterData()">데이터 삭제</button>
+				</div>
+			</div>
+		</div>	
+	</div>
+</div>
+</div>
+<script src="/js/main.js"></script>
+<script>
+	(function($){
+		windowResize();
+		$(window).on("load",function(){
+			
+			$(".js_scroll").mCustomScrollbar({
+				//setHeight:170,
+				theme:"minimal-dark"
+			});
+		});
+	})(jQuery);
+</script>
+
+</body>
+</html>

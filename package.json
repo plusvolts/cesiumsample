@@ -1,0 +1,21 @@
+{
+  "name": "cesiumsample",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commonjs": "^0.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.1",
+    "express-http-proxy": "^1.6.3",
+    "node-fetch": "^2.6.7",
+    "nodemon": "^2.0.16",
+    "querystring": "^0.2.1",
+    "request": "^2.88.2"
+  }
+}
