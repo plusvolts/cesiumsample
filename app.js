@@ -9,6 +9,10 @@ const qs = require('querystring');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/mapxd', function(req,res){
+    res.sendFile(path.join(__dirname, 'public', 'html/mapxd.html'))
+});
+
 app.get('/map', function(req,res){
     res.sendFile(path.join(__dirname, 'public', 'html/map.html'))
 });

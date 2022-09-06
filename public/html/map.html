@@ -31,7 +31,8 @@
 		<ul id="right_tab_btn">
 			<li class="m_1 active" id="t_map">지도</li>
 			<li class="m_2" id="t_search">검색</li>
-			<li class="m_3" id="t_infra">객체관리</li>
+			<li class="m_4" id="t_drawobj">기본객체관리</li>
+			<li class="m_3" id="t_infra">모델객체관리</li>			
 			<li class="m_4" id="t_mapadmin">레이어추가</li>
 			<li class="m_5" id="t_algorithm">현실정보</li>
 		</ul>
@@ -452,6 +453,39 @@
 				</div>
 			</div>
 		</div>	
+	</div>
+	<!-- ★★★★★★대메뉴4_베이스맵★★★★★★ -->
+	<div class="rightTab hide" id="d_drawobj">
+		<h1>
+			<span>기본 객체 관리</span>
+		</h1>
+		<div class="sub3_container js_scroll">
+			<h3>객체 그리기</h3>
+				<button class="btn_2" onclick="drawInterection(1)">Point 그리기</button>					
+				<button class="btn_2" onclick="drawInterection(2)">LineString 그리기</button>					
+				<button class="btn_2" onclick="drawInterection(3)">Polygon 그리기</button>					
+				<button class="btn_2" onclick="drawInterection(0)">마우스 이동모드</button>					
+				<button class="btn_1" onclick="removeDrawEntity()">그리기 객체 삭제</button>					
+			<h3>WFS 레이어 추가</h3>
+			<ul class="underground_Facility">
+				<li>
+					<span class="color_legend" style="background: #ffff"></span>
+					수자원(하천망)
+					<label class="input_switch fl_r">
+						<input type="checkbox" onchange="addWfsLayer(this.checked, this.id)" id="lt_c_wkmstrm">
+						<span class="input_slider round"></span>
+					</label>
+				</li>	
+				<li>
+					<span class="color_legend" style="background: #ffff"></span>
+					교통노드
+					<label class="input_switch fl_r">
+						<input type="checkbox" onchange="addWfsLayer(this.checked, this.id)" id="lt_p_moctnode">
+						<span class="input_slider round"></span>
+					</label>
+				</li>					
+			</ul>
+		</div>
 	</div>
 </div>
 </div>
