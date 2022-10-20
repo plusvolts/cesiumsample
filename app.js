@@ -28,8 +28,12 @@ app.get('/maptest', function(req,res){
 const wmsUrl = "http://api.vworld.kr/req/wms";
 const wfsUrl = "http://api.vworld.kr/req/wfs";
 app.get('/proxywms', function(req, res) {    
-    var url = wmsUrl +"?" + qs.stringify(req.query);
-    //console.log('/fileThumbnail going to url' + url); 
+    var urlstr = qs.unescape(qs.stringify(req.query));
+    urlstr = urlstr.replace('//', '');
+
+    // var url = wmsUrl +"?" + qs.stringify(req.query);
+    var url = wmsUrl +"?" + urlstr;
+    // console.log('/fileThumbnail going to url ' + url); 
     request.get(url).pipe(res);
 });
 
