@@ -13,9 +13,6 @@ var GLOBAL = {
 };
 var Module;
 
-let geoserver = 'http://localhost:8089/geoserver/testWorkspace';
-
-
 function initUIEvent(){
 	//위치 검색
 	$('.search button').click(function(){
