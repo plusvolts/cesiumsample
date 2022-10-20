@@ -11,22 +11,89 @@ var GLOBAL = {
 	TRACE_TARGET : null,
 	RCidx : 0,
 };
+var Module;
+
 let geoserver = 'http://localhost:8089/geoserver/testWorkspace';
 
 
-//윈도우 크기 자동 적용
-window.onresize = function() {
+function initUIEvent(){
+	//위치 검색
+	$('.search button').click(function(){
 
-	if (typeof Module == "object") {
-		Module.Resize(window.innerWidth-405, window.innerHeight);
-		Module.XDRenderData();
-	}
-};
+		let keyword = $('.search input').val();
+		searchPlace(keyword, 1);	
+
+	});
+
+	//위치 검색 페이지 이동	
+	$(document).on('click', '.s_paging li',function(e){
+		let keyword = $('.search input').val();
+		let num = this.innerText;
+
+		if($(this).attr('disabled') == 'disabled'){
+			return;
+		}
+
+		if(num == '▶'){
+			num = Number($('#currnetPage').text())+1;
+		}else if(num == '◀'){
+			num = Number($('#currnetPage').text())-1;
+		}
+	
+		searchPlace(keyword, num);
+	});
+	
+	$(document).on('click', '.s_location li',function(e){
+		let camera = Module.getViewCamera();
+		camera.setLocation(new Module.JSVector3D(Number(this.dataset.pointx), Number(this.dataset.pointy), 1000));
+	})
+
+	//윈도우 크기 자동 적용
+	window.onresize = function() {
+		if (typeof Module == "object") {
+			Module.Resize(window.innerWidth-405, window.innerHeight);
+			Module.XDRenderData();
+		}
+	};
+}
+
+
 
 // 2. 기본지도 호출 함수 
-function callCesiumMap(){
-    
-  var tm = (new Date()).getTime();	// 캐싱 방지
+function callCesiumMap(){   
+	
+/*********************************************************
+ *	엔진파일 로드 후 Module 객체가 생성되며,
+ *  Module 객체를 통해 API 클래스에 접근 할 수 있습니다.
+ *	 - Module.postRun : 엔진파일 로드 후 실행할 함수를 연결합니다.
+ *	 - Module.canvas : 지도를 표시할 canvas 엘리먼트를 연결합니다.
+ *********************************************************/
+
+	Module = {
+		TOTAL_MEMORY: 256*1024*1024,
+		postRun: [initXDMap],
+		canvas: (function() {
+			// Canvas 엘리먼트 생성
+			var canvas = document.createElement('canvas');
+		
+			// Canvas id, Width, height 설정
+			canvas.id = "canvas";
+		
+			canvas.width= window.innerWidth-405;
+			canvas.height=window.innerHeight;	
+		
+			canvas.addEventListener("contextmenu", function(e){
+				e.preventDefault();
+			});
+		
+			// 생성한 Canvas 엘리먼트를 cesiumContainer요소에 추가합니다.
+			document.getElementById('cesiumContainer').appendChild(canvas);
+		
+			return canvas;
+		})()
+	}; 
+
+ 	 var tm = (new Date()).getTime();	// 캐싱 방지
     
 	// 1. XDWorldEM.asm.js 파일 로드
 	var file = "/js/xdmap/XDWorldEM.asm.js?tm="+tm;
@@ -64,18 +131,16 @@ function callCesiumMap(){
 		}, 1);
 	};
 	xhr.send(null);
-
-  /*********************************************************
- *	엔진파일 로드 후 Module 객체가 생성되며,
- *  Module 객체를 통해 API 클래스에 접근 할 수 있습니다.
- *	 - Module.postRun : 엔진파일 로드 후 실행할 함수를 연결합니다.
- *	 - Module.canvas : 지도를 표시할 canvas 엘리먼트를 연결합니다.
- *********************************************************/
-
-	validDragSdis();
-	
-	
-
+}
+ 
+function initXDMap(){
+  Module.Start(window.innerWidth-405, window.innerHeight);
+  Module.map = Module.getMap();
+  GLOBAL.Analysis = Module.getAnalysis();
+  GLOBAL.ghostSymbolmap = Module.getGhostSymbolMap();
+  
+  validDragSdis();
+  initUIEvent();
 }
 
 
@@ -91,38 +156,6 @@ function validDragSdis() {
 	};
 }
 
-var Module = {
-   TOTAL_MEMORY: 256*1024*1024,
-   postRun: [initXDMap],
-   canvas: (function() {
-
-	 // Canvas 엘리먼트 생성
-	 var canvas = document.createElement('canvas');
-
-	 // Canvas id, Width, height 설정
-	 canvas.id = "canvas";
-
-	 canvas.width= window.innerWidth-405;
-	 canvas.height=window.innerHeight;	
-
-	 canvas.addEventListener("contextmenu", function(e){
-	   e.preventDefault();
-	 });
-
-	 // 생성한 Canvas 엘리먼트를 cesiumContainer요소에 추가합니다.
-	 document.getElementById('cesiumContainer').appendChild(canvas);
-
-	 return canvas;
-   })()
- };
- 
-function initXDMap(){
-  Module.Start(window.innerWidth-405, window.innerHeight);
-  Module.map = Module.getMap();
-  GLOBAL.Analysis = Module.getAnalysis();
-  GLOBAL.ghostSymbolmap = Module.getGhostSymbolMap();
-
-}
 
 //카메라 이동합수
 function moveCamera(){
@@ -155,39 +188,12 @@ function setMouseLClickEvent(val){
             $('#evntLat').val(lat);
 			
 		}
-	}else{
-		
+	}else{		
 		Module.canvas.onmousedown = "return false;"
 	}
 
 }
 
-//위치 검색
-$('.search button').click(function(){
-
-	let keyword = $('.search input').val();
-	searchPlace(keyword, 1);	
-
-});
-
-//위치 검색 페이지 이동
-$(document).on('click', '.s_paging li', function(){
-	
-	let keyword = $('.search input').val();
-	let num = this.innerText;
-
-	if($(this).attr('disabled') == 'disabled'){
-		return;
-	}
-
-	if(num == '▶'){
-		num = Number($('#currnetPage').text())+1;
-	}else if(num == '◀'){
-		num = Number($('#currnetPage').text())-1;
-	}
-  
-	searchPlace(keyword, num);
-})
 
 //위치 검색 api
 function searchPlace(keyword, pageNum){
@@ -273,12 +279,6 @@ function setPagination(pageData){
 	$('.s_paging').html(result);
 
 }
-
-$(document).on('click', '.s_location li',function(e){
-
-	let camera = Module.getViewCamera();
-	camera.setLocation(new Module.JSVector3D(Number(this.dataset.pointx), Number(this.dataset.pointy), 1000));
-})
 
 
 
