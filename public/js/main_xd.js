@@ -54,8 +54,6 @@ function initUIEvent(){
 	};
 }
 
-
-
 // 2. 기본지도 호출 함수 
 function callCesiumMap(){   
 	
