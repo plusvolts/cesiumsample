@@ -350,7 +350,7 @@ function addWmsLayer(cFlag,layerName){
                 //http://api.vworld.kr/req/wms
                 url : '/proxywms',        //프록시 주소
                 parameters: {
-                    key : '42F6D36E-1A78-34B7-959F-37611794397B', //api key
+                    key : 'F1D04FBB-DBB3-3F07-9B45-2FA496499F9B', //api key
                     version : '1.3.0',                            //wms version
                     domain: 'localhost:8080',                     //api 신청 주소
                     format : 'image/png',

@@ -136,7 +136,7 @@ function moveCamera(){
 	alt *= 1; 
 
 	camera.setLocation(new Module.JSVector3D(lon, lat, alt));
-   
+	
     //##실습2. 기본 지도 로딩 함수 추가. 지정 좌표로 위치 이동 소스 추가
 }
 
@@ -144,7 +144,7 @@ function moveCamera(){
 function setMouseLClickEvent(val){
 	if(val){
 		Module.canvas.onmousedown = function(e){
-			var screenPosition = new Module.JSVector2D(e.x, e.y);
+			var screenPosition = new Module.JSVector2D(e.x-405, e.y);
 		
 			// 화면->지도 좌표 변환
 			var mapPosition = Module.getMap().ScreenToMapPointEX(screenPosition);
@@ -213,7 +213,6 @@ function searchPlace(keyword, pageNum){
         , dataType: 'JSONP'
         , data: params
         , success: function (data) {
-			console.log(data);
 			$('#tab2 h2').html("<span>"+keyword+"</span>검색결과입니다.")
 			searchResultList(data);
 			setPagination(data.response.page);
@@ -298,7 +297,7 @@ function drawInterection(num){
 
 }
 
-//point 그리기 
+//point 생성
 function drawPoint(){ 
 
 	Module.canvas.onmousedown = function(e){
@@ -329,17 +328,16 @@ function drawPoint(){
 		};
 		img.layer = layer;
 		img.src = '/XDdata/map_pin.png';
-		//img.src = '../img/num/icon_pin_1.png';
 
 		
-		Module.canvas.onmousedown = '/return false;'
+		Module.canvas.onmousedown = 'return false;'
 		Module.XDSetMouseState(1);
 
 	};
 
 }
 
-//line 그리기
+//line 생성
 function drawLine(){
 	Module.XDSetMouseState(21);
 
@@ -398,7 +396,7 @@ function createNormalLine(coordinates){
 	return data;
 }
 
-//polygon 그리기
+//polygon 생성
 function drawPolygon(){
 
 	Module.XDSetMouseState(21);
@@ -467,36 +465,46 @@ function setMouseMode(){
 	Module.map.clearInputPoint();
 }
 
-//그리기 객체 삭제
+//그리기 객체 삭제 
 function removeDrawEntity(){
 	Module.XDSetMouseState(6);
 	Module.canvas.addEventListener('Fire_EventSelectedObject', function(e){
+		var objLayer = 'POI_LayerLINE_LayerPOLYGON_Layer';
+		if(!(objLayer.includes(e.layerName))){
+			Module.map.clearSelectObj();
+			return;
+		}
 		
 		// 사용자 레이어 리스트에서 객체 키를 사용해 객체 반환
 		var layerList = new Module.JSLayerList(true);
 		var layer = layerList.nameAtLayer(e.layerName);
-		layer.removeAtKey(e.objKey);
+		if(layer != null){
+			layer.removeAtKey(e.objKey);
+		}
 	})
 
 }
 
 //vworld 건물 추가
 function addOSMBuilding(val){
+	Module.XDSetMouseState(1);
 
 	if(val){
 		Module.XDEMapCreateLayer("facility_build", "https://xdworld.vworld.kr", 0, true, true, false, 9, 0, 15);
 		Module.setVisibleRange("facility_build", 3.0, 100000.0);
 		Module.getMap().setSimpleMode(true);
 
-		Module.XDSetMouseState(6);
 	}else{
 		Module.XDEMapRemoveLayer("facility_build");
-		// Module.setVisibleRange("facility_build", 0, 0);
+		console.log($('#rm_vbuilding').attr('checked', false));
+
+
 		
 	}
 
 }
 
+//vworld 건물 삭제
 function removeOSMBuilding(val){
 
 	if(!val){
@@ -509,18 +517,14 @@ function removeOSMBuilding(val){
 	Module.canvas.addEventListener('Fire_EventSelectedObject', function(e){
 		
 		if(e.layerName == 'facility_build'){
-			layerlist.nameAtLayer('facility_build');
 			layerlist.nameAtLayer('facility_build').keyAtObject(e.objKey).setVisible(false);
 			Module.getMap().clearSelectObj();
 		}
 	})
 	
-
-
-
-
 }
 
+//모델객체 관리
 function addModelEntity(val, mName, height){
 
 	switch(mName){
@@ -537,12 +541,12 @@ function addModelEntity(val, mName, height){
 	GLOBAL.ghostSymbolMap = Module.getGhostSymbolMap();
 	
 	if(mName == 'Airship'){
-		stopBallon();
+		stopAirship();//애니메이션 종료
 	}
 
 	if(!val){
 		GLOBAL.ghostSymbolLayer.keyAtObject(mName).setVisible(false);
-		stopBallon();
+		stopAirship();//애니메이션 종료
 		return;
 	}
 	
@@ -550,39 +554,34 @@ function addModelEntity(val, mName, height){
 	if(g){
 		GLOBAL.ghostSymbolLayer.keyAtObject(mName).setVisible(true);
 		if(mName == 'Airship'){
-			GLOBAL.ghostSymbolLayer.keyAtObject(mName).setPosition(new Module.JSVector3D(127.1, 37.5, 100));
+			GLOBAL.ghostSymbolLayer.keyAtObject(mName).setPosition(new Module.JSVector3D(127.1, 37.5, 100));//출발지점으로 이동
 		}
 		return;
 	} 
 	
 	let position=[127.1-(height*0.000006), 37.499103, (mName == 'drone'?100:15)];
-	console.log(position);
 	
-	//console.log(Module.getGhostSymbolMap());
-	console.log(Module.getGhostSymbolMap().insert({
+
+	//고스트심볼 객체 생성
+	Module.getGhostSymbolMap().insert({
 		id : mName,
 		url : '/XDdata/'+mName+".3ds",
 		callback : function(e) {
-			console.log(e.id);
 			// 텍스쳐 설정
 			Module.getGhostSymbolMap().setModelTexture({
 				id : e.id,
 				face_index : 0,
 				url : '/XDdata/'+mName+".jpg",
 				callback : function(e) {
-					console.log(e.id);
+					// console.log(e.id);
 				}
 			});
 
 			// 오브젝트 생성 및 레이어 추가
 			var object = createGhostSymbol(mName, e.id, position);
-			
 			GLOBAL.ghostSymbolLayer.addObject(object, 0);
-			GLOBAL.ghostSymbolObject = object;
-			console.log(object);
-			
 		}
-	}));
+	});
 
 }
 
@@ -590,28 +589,25 @@ function addModelEntity(val, mName, height){
 function createGhostSymbol(_objectKey, _modelKey, _position) {
 	var newModel = Module.createGhostSymbol(_objectKey);
 	
-	
 	// base point 설정
 	var modelHeight = GLOBAL.ghostSymbolMap.getGhostSymbolSize(_modelKey);
 	
 	newModel.setBasePoint(0, -modelHeight.height*0.5, 0);
 	newModel.setRotation(0, 90.0, 0);
-	
-
 	newModel.setScale(_objectKey == 'drone'? new Module.JSSize3D(0.1, 0.1, 0.1): new Module.JSSize3D(1.0, 1.0, 1.0));
-	
-
 	newModel.setGhostSymbol(_modelKey);
 	newModel.setPosition(new Module.JSVector3D(_position[0], _position[1], _position[2]));			
 		
 	return newModel;
 }
 
+//사용자 객체삭제
 function removeAllEntity(){
 	Module.canvas.onmousedown = 'return false;'
 	Module.canvas.onmousemove ='return false;'
 	Module.canvas.onmouseup = 'return false;'
 
+	//모델 객체 삭제
 	var layerlist = new Module.JSLayerList(true);
 	var layer = layerlist.nameAtLayer('GHOST_SYMBOL_LAYER');
 	var objlist;
@@ -623,14 +619,12 @@ function removeAllEntity(){
 			for(let i = 0; i<objlist.length-1; i++){
 				layer.keyAtObject(objlist[i]).setVisible(false);
 			}
-
 		}
-
 	}
-
 
 	$('.underground_Facility input[type=checkbox]').attr('checked', false);
 
+	//마우스 클릭 객체 삭제
 	layer = layerlist.nameAtLayer('RClickLayer');
 	if(layer != null){
 		objlist = layer.getObjectKeyList();
@@ -643,13 +637,11 @@ function removeAllEntity(){
 		}
 	}
 
-
-	stopBallon();
-
-}
-function clearMouseEvent(){
+	stopAirship();
 
 }
+
+/**객체 이동 이벤트시 마우스이벤트 */
 let mousedownE = function(e){
 	GLOBAL.MOUSE_BUTTON_PRESS = true;
 }
@@ -657,9 +649,7 @@ let mouseupE = function(e){
 	GLOBAL.MOUSE_BUTTON_PRESS = false;
 }
 let mousemoveE = function(e){
-	console.log('dkdk');
 	if (GLOBAL.MOUSE_BUTTON_PRESS) {
-		// Mouse left button
 		if (e.buttons == 2) {
 			
 			GLOBAL.TRACE_TARGET.direction += (e.movementX*0.1);
@@ -679,6 +669,8 @@ let mouseWheelE = function(e){
 
 } 
 
+
+//객체이동 이벤트  > 애니메이션 시작
 function playCarAnimation(){
 	let temp;
 	var camera = Module.getViewCamera();
@@ -722,10 +714,10 @@ function playCarAnimation(){
 		
 	}
 	move(0);
-	
 }
 
-function stopBallon(){
+//애니메이션 종료
+function stopAirship(){
 	var camera = Module.getViewCamera();
 	camera.setTraceActive(false);
 	clearTimeout(GLOBAL.CURRENT_MOVEMENT);
@@ -735,8 +727,6 @@ function stopBallon(){
 	Module.canvas.removeEventListener('mousemove', mousemoveE);
 	
 	Module.canvas.removeEventListener('wheel', mouseWheelE);
-
-
 
 }
 
@@ -749,8 +739,6 @@ function move(_index) {
 	if (_index >= GLOBAL.MOVE_PATH.count()) {
 		
 		GLOBAL.CURRENT_MOVEMENT = null;
-		// camera.setTilt(45);
-		// camera.setLocation(new Module.JSVector3D(127.099990, 37.493836, 450.1252494417130947));
 		camera.setTraceActive(false);
 		return;
 	}
@@ -760,11 +748,8 @@ function move(_index) {
 	var altitude = Module.getMap().getTerrHeightFast(position.Longitude, position.Latitude);
 	GLOBAL.TRACE_TARGET.getObject().setPosition(new Module.JSVector3D(position.Longitude, position.Latitude, altitude));
 	
-	//Module.XDRenderData();
-
 	// 시간 간격으로 두고 다음 지점으로 이동
 	GLOBAL.CURRENT_MOVEMENT = setTimeout(function() {
-		
 		move(_index+1);
 	}, 50);
 }
@@ -781,13 +766,13 @@ function createPath(_pathPoint) {
 	return Module.getMap().GetPathIntervalPositions(input, 1.0, false);
 }
 
-
+//애니메이션 멈춤
 function stopCarAnimation(){
 	clearTimeout(GLOBAL.CURRENT_MOVEMENT);
-	stopBallon();
+	stopAirship();
 }
 
-
+//마우스로 객체 추가&삭제
 function setMouseRClickEvent(val, id){
 	
 	$('#'+(id == 'RCL_DELETE'?'RCL_MAKE': 'RCL_DELETE')).attr('checked', false);
@@ -796,10 +781,11 @@ function setMouseRClickEvent(val, id){
 	Module.canvas.onmousemove ='return false;'
 	Module.canvas.onmouseup = 'return false;'
 	if(!val){
+		Module.XDSetMouseState(1);
 		return;
 	}
-
-	if(id == 'RCL_DELETE'){
+	
+	if(id == 'RCL_DELETE'){//클릭 시 객체 삭제
 		
 		Module.XDSetMouseState(6);
 		Module.canvas.addEventListener('Fire_EventSelectedObject', function(e){
@@ -811,8 +797,8 @@ function setMouseRClickEvent(val, id){
 			}
 		});
 
-	}else{
-
+	}else{//클릭 시 객체 생성
+		Module.XDSetMouseState(1);
 		let mTag = false;
 		Module.canvas.onmousedown = function(){mTage = true;}
 		Module.canvas.onmousemove = function(){mTage = false;}
@@ -841,18 +827,16 @@ function setMouseRClickEvent(val, id){
 			let position=[Number(lon), Number(lat), alt];
 			let RCid = 'RClickObj_'+GLOBAL.RCidx++;
 
-			console.log(Module.getGhostSymbolMap().insert({
+			Module.getGhostSymbolMap().insert({
 				id : RCid,
 				url : url3D,
 				callback : function(e) {
-					console.log(e.id);
 					// 텍스쳐 설정
 					Module.getGhostSymbolMap().setModelTexture({
 						id : e.id,
 						face_index : 0,
 						url : '/XDdata/church3D.jpg',
 						callback : function(e) {
-							console.log(e.id);
 						}
 					});
 		
@@ -860,32 +844,27 @@ function setMouseRClickEvent(val, id){
 					var object = createGhostSymbol(RCid, e.id, position);
 					
 					GLOBAL.ghostSymbolLayer.addObject(object, 0);
-					GLOBAL.ghostSymbolObject = object;
-					console.log(object);
 					
 				}
-			}));
-	
-			
-	
-			
+			});
 		}
-		
 	}
-
-
 }
-
-
 
 //wms 레이어 추가
 function addWmsLayer(val, layerName){
 	
-	if(layerName == 'lt_c_ademd'){ layerName = 'seoul_umd'}
-	
-	// 초기화
 	let layerList = new Module.JSLayerList(false);		
 	let wmslayer = layerList.nameAtLayer("wmslayer_"+layerName);
+	if(!val){
+		layerList.setVisible("wmslayer_"+layerName, false);
+		return;
+	}else if(wmslayer != null){
+		layerList.setVisible("wmslayer_"+layerName, true);
+		return;
+	}
+
+	Module.SetProxy('./proxywms?');
 
 	if(!val){
 		if(wmslayer != null)	wmslayer.clearWMSCache();	
@@ -894,42 +873,35 @@ function addWmsLayer(val, layerName){
 	}
 
 	let slopeoption = {
-		url: geoserver+"/wms?",
-		layer: "testWorkspace:"+layerName,
+		url : '',
+		layer: layerName,
 		minimumlevel: 0,	
 		maximumlevel: 15,
-		parameters: {
-			version: '1.1.0',
-		}
+		crs:'EPSG:4326',
+		parameters:  {
+			key : 'F1D04FBB-DBB3-3F07-9B45-2FA496499F9B', //api key
+			request : 'GetMap',
+			styles : (layerName == 'lt_c_upisuq161'?layerName:layerName+'_3d'),
+			version : '1.3.0',                            //wms version
+			domain: 'localhost:8080',                     //api 신청 주소
+			format : 'image/png',
+			transparent:'true',
+			bbox:'-180,-90,0,90'
+		},
+
 	};	
-	
-	wmslayer = layerList.createWMSLayer("wmslayer_"+layerName); 	// WMS 레이어 생성
+	wmslayer = layerList.createWMSLayer("wmslayer_"+layerName); 
+	wmslayer.setBBoxOrder(false);
 	wmslayer.setWMSProvider(slopeoption);				// WMS 레이어 정보 셋팅
-	wmslayer.setBBoxOrder(true);
+	wmslayer.setProxyRequest(true);	// WMS 레이어 생성
 	
 }
-
-
 
 //wfs레이어 추가
 function addWfsLayer(val, layerName){
 
-	//수자원
-	if(val && layerName == 'lt_c_wkmstrm'){
-
-		$.get(geoserver+"/ows",{
-			service : 'WFS', version : '1.0.0', request : 'GetFeature', typename : 'testWorkspace:'+layerName,  
-			maxFeatures : '30', outputFormat : 'application/json', srsName : 'EPSG:4326', cql_filter : 'bbox(geom, 128.265422,36.830953,129.057725,38.241291)'
-		},
-		function(data){
-			console.log(data)
-			var layerList = new Module.JSLayerList(true);
-			layerList.delLayerAtName(layerName);
-			let layer = layerList.createLayer(layerName+"_Layer", 1);
-			createPolygonStrm(data.features, layer);
-		})
-	//교통 노드
-	}else if(val && layerName == 'lt_p_moctnode'){
+	if(layerName == 'lt_c_wkmstrm'){layerName = 'lt_c_ud801'};
+	if(val){
 		
 		let param ={
 			service : 'WFS',
@@ -937,7 +909,7 @@ function addWfsLayer(val, layerName){
 			version : '1.1.0',
 			maxFeatures : 50,
 			output : 'application/json',
-			key : '42F6D36E-1A78-34B7-959F-37611794397B',
+			key : 'F1D04FBB-DBB3-3F07-9B45-2FA496499F9B',
 			DOMAIN : 'localhost:8080',
 			crs : 'EPSG:4326',
 			srsname : 'EPSG:4326',
@@ -949,12 +921,14 @@ function addWfsLayer(val, layerName){
 				,url : '/proxywfs'
 				,data : param        
 				,success : function(data){
-					console.log(data);
 					var layerList = new Module.JSLayerList(true);
 					layerList.delLayerAtName(layerName);
 					let layer = layerList.createLayer(layerName+"_Layer", 1);
-					createPoint(data.features, layer);
-					//createPolygon(data.features, layer);
+					if(layerName == 'lt_p_moctnode'){
+						createPoint(data.features, layer);
+					}else{
+						createPolygon(data.features, layer);
+					}
 				}
 				,error : function(e){
 					console.log(e);
@@ -966,19 +940,17 @@ function addWfsLayer(val, layerName){
 		return;
 	}
 
-	
 }
 
-//안 씀
+//wfs polygon 생성
 function createPolygon(featuresArr, layer){
 
-	//featuresArr.forEach(f =>{
 	for(let k = 0; k<featuresArr.length; k++){
 		let f = featuresArr[k];
 		
 		let polygon = Module.createPolygon(f.id);
-		let color = new Module.JSColor(12, 52, 117, 1);
-		let outline = new Module.JSColor(12, 52, 117, 1);
+		let color = new Module.JSColor(170, 153, 153, 153);
+		let outline = new Module.JSColor(12, 153, 153, 153);
 
 		// 폴리곤 색상 설정
 		var polygonStyle = new Module.JSPolygonStyle();
@@ -1005,74 +977,17 @@ function createPolygon(featuresArr, layer){
 		}
 
 		polygon.setPartCoordinates(vertex, part);
-		
 		polygon.setUnionMode(true);//지형결합 option
-		console.log(polygon)
 
 		// 레이어에 객체 추가
 		layer.addObject(polygon, 0);
 		
-		//});
 	};
 	layer.setMaxDistance(50000000);
 	
 }
 
-//수자원 polygon 생성
-function createPolygonStrm(featuresArr, layer){
-	let arr = new Array();
-	//featuresArr.forEach(f =>{
-	for(let k = 0; k<featuresArr.length; k++){
-		let f = featuresArr[k];
-		let color = new Module.JSColor(12, 52, 117, 1);
-		let outline = new Module.JSColor(12, 52, 117, 1);
-
-		// 폴리곤 색상 설정
-		var polygonStyle = new Module.JSPolygonStyle();
-		polygonStyle.setFill(true);
-		polygonStyle.setFillColor(color);
-		
-		// 폴리곤 아웃라인 설정
-		polygonStyle.setOutLine(true);
-		polygonStyle.setOutLineWidth(2.0);
-		polygonStyle.setOutLineColor(outline);
-		
-		for(let i = 0; i<f.geometry.coordinates[0][0].length; i++){
-			let start = i; 
-			i+=100
-			let end = i;
-			arr = f.geometry.coordinates[0][0].slice(start, end);
-
-			let polygon = Module.createPolygon(f.id+'_'+i);
-			polygon.setStyle(polygonStyle);
-	
-			// 입력한 지점(inputPoint, part)으로 폴리곤 형태 정의
-			var part = new Module.Collection();
-			part.add(arr.length);
-			var vertex = new Module.JSVec3Array();
-
-			for(let j = 0; j<arr.length; j++){
-
-
-				// 입력한 점 위치에서 고도 5m 를 상승시킨 후 버텍스 추가
-				var point = arr[j];
-				vertex.push(new Module.JSVector3D(Number(point[0]), Number(point[1]), 50.0));
-			}
-
-			polygon.setPartCoordinates(vertex, part);
-			polygon.setUnionMode(true);//지형결합 option
-	
-			// 레이어에 객체 추가
-			layer.addObject(polygon, 0);
-		}
-
-		//});
-	};
-	layer.setMaxDistance(50000000);
-	
-}
-
-//교통노드 point 생성
+//wfs point 생성
 function createPoint(data, layer){
 	data.forEach(e => {
 		var img = new Image();
@@ -1088,13 +1003,14 @@ function createPoint(data, layer){
 			layer.addObject(point, 0);
 		};
 		img.layer = layer;
-		img.src = '../img/num/icon_pin_1.png';
+		img.src = '/XDdata/map_pin.png';
 		layer.setMaxDistance(50000000);
 	})
 }
 
 //그림자 효과
 function addShadowEffect(val){
+	Module.XDSetMouseState(1);
 	if(val){
 
 		Module.XDEMapCreateLayer("facility_build", "https://xdworld.vworld.kr", 0, true, true, false, 9, 0, 15)
@@ -1122,24 +1038,221 @@ function stopShadowSimulation(){
 
 //눈효과 적용
 function playSnowEffect(){
+	Module.map.stopWeather();	
+	Module.map.clearSnowfallArea();
+
+	Module.map.startWeather(0, 5, 5)
 	Module.map.setSnowfall(1);
 	Module.map.setSnowfallLevel(2.0);
-	Module.map.setSnowImageURL('./data/snow2.png');
-	Module.map.startWeather(0, 5, 5);
+	Module.map.setSnowImageURL('/XDdata/snow.png');
+	Module.map.startWeather(0, 1, 1);
 }
 
+//비효과 적용
 function playRainEffect(){
+	Module.map.stopWeather();	
+	Module.map.clearSnowfallArea();
+	Module.map.setSnowfall(0);
+
+	Module.map.startWeather(1, 5, 5)
+	Module.map.setRainImageURL('/XDdata/rain.png')
+	Module.map.startWeather(1, 5, 5);
 
 }
-function setSkyBright(){
+
+// 하늘 밝기
+function setSkyBright(val){
+	Module.map.stopWeather();	
+	Module.map.clearSnowfallArea();
+	Module.map.setSnowfall(0);
+	
+	Module.map.setFogLimitAltitude(6000000.0);
+	Module.map.setFogEnable(true);
+	color = new Module.JSColor(255, 10, 10, 10);
+	Module.map.setFog(color, 5.8, 1000, Number(val));
+	Module.XDRenderData();
 
 }
-function setFogDensity(){
+
+//안개 가시범위
+function setFogDensity(val){
+	Module.map.stopWeather();	
+	Module.map.clearSnowfallArea();
+	Module.map.setSnowfall(0);
+
+	let dis = 5000 - (val * 100);
+	
+	Module.map.setFogLimitAltitude(6000000.0);
+	Module.map.setFogEnable(true);
+
+	color = new Module.JSColor(255, 255, 255, 255);
+	Module.map.setFog(color, 5.8, dis, 0.9);
+	Module.XDRenderData();
 
 }
+
 //기상효과 제거
 function removeWeatherEntity(){
 	Module.map.stopWeather();	
 	Module.map.clearSnowfallArea();
+	Module.map.setSnowfall(0);
+	Module.map.setFogEnable(false);
 
 }
+
+//통계표현
+function createSeriesSetter(type){
+	let camera = Module.getViewCamera();
+	camera.setAltitude(1000000);
+
+	var layerList = new Module.JSLayerList(true);
+	
+	layerList.setVisible('LAYER_GRID_2D', false);
+	layerList.setVisible('LAYER_GRID_3D', false);
+	var layer;
+	
+	if(!type){return;}
+	
+	if(layerList.nameAtLayer('LAYER_GRID_'+type) != null){
+		layerList.setVisible('LAYER_GRID_'+type, true);
+		return;
+	}else{
+		layer = layerList.createLayer('LAYER_GRID_'+type, Module.ELT_POLYHEDRON)
+	}
+	
+	$.getJSON("/XDdata/data.json", function(data) {
+		// 그래프 생성
+		var grid;
+		if(type == '2D'){
+			grid = createGrid_2D(data);
+		}else if(type == '3D'){
+			grid = createGrid_3D(data);
+		}
+		layer.addObject(grid, 0);
+		layer.setMaxDistance(2000000.0);
+		layer.setMinDistance(0.0);
+	});
+	
+
+}
+
+/* 그래프 생성 */
+function createGrid_2D(_data) {
+	gridData = _data.data.data;
+
+	//그리드 객체 생성
+	var grid = Module.createColorGrid('2D_GRID');
+
+	//최대, 최소 rect와 셀 갯수에 따른 그리드 cell 위치 지정
+	grid.SetGridCellDefaultColor(new Module.JSColor(0, 0, 0, 0));
+
+	//그리드 셀의 위치 및 크기, 높이 설정
+	var rowNum = 180,
+		colNum = 160;
+	
+	grid.SetGridPosition(
+		new Module.JSVector2D(124, 38.95),
+		new Module.JSVector2D(133, 38.95),
+		new Module.JSVector2D(133, 30.9),
+		new Module.JSVector2D(124, 30.9),
+		10000.0,
+		rowNum,
+		colNum
+	);
+
+
+	var gridCellColor = [
+		new Module.JSColor(150,215,25,28),		//빨
+		new Module.JSColor(150,253,174,97),		//주
+		new Module.JSColor(150,255,255,191),		//노
+		new Module.JSColor(150,171,221,164),		//초
+		new Module.JSColor(150,43,131,186)		//파
+	];
+	
+	// 격자 cell line color 초기화
+	grid.SetGridLineColor(new Module.JSColor(10,255,255,255));
+
+
+	for(var i = 0; i<gridData.length; i++){
+		var grade=0;
+		grade = gridData[i].grade;
+		if(grade == 5){
+			grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[0]);
+		}else if(grade == 4){
+			grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[1]);
+		}else if(grade == 3){
+			grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[2]);
+		}else if(grade == 2){
+			grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[3]);
+		}else if(grade == 1){
+			grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[4]);
+		}
+
+	}
+
+	grid.Create();
+	return grid;
+
+}
+
+function createGrid_3D(_data){
+	var gridData = _data.data.data;
+	//그리드 객체 생성
+	var grid = Module.createColorGrid3D('3D_GRID');
+
+	// 최대, 최소 rect와 셀 갯수에 따른 그리드 cell 위치 지정
+	grid.SetGridCellDefaultColor(new Module.JSColor(0, 0, 0, 0));
+	// 그리드 셀의 위치 및 크기, 높이 설정
+	var rowNum = 180,
+		colNum = 160;
+	
+	grid.SetGridPosition(
+		new Module.JSVector2D(124, 38.95), 		// 그리드 좌상단
+		new Module.JSVector2D(133, 38.95), 		// 그리드 우상단
+		new Module.JSVector2D(133, 30.9), 		// 그리드 우하단
+		new Module.JSVector2D(124, 30.9), 		// 그리드 좌하단
+		1000.0, 								// 그리드 바닥면 고도
+		rowNum, 								// 그리드 가로 셀 갯수
+		colNum									// 그리드 세로 셀 갯수
+	);
+	// 격자 cell line color 초기화
+	for(var i=0;i<180;i++){
+		for(var j=0;j<160;j++){
+			grid.SetGridCellLineColor(i, j,  new Module.JSColor(0,255,255,255));
+		}
+	}
+	// 값에 따른 그리드 셀 색상 리스트//컬러변경
+	var gridCellColor = [
+		new Module.JSColor(150,215,25,28),		//빨
+		new Module.JSColor(150,253,174,97),		//주
+		new Module.JSColor(150,255,255,191),		//노
+		new Module.JSColor(150,171,221,164),		//초
+		new Module.JSColor(150,43,131,186)		//파
+	];
+		for(var i=0;i<gridData.length;i++){
+			var grade=0;
+			grade=gridData[i].grade;
+			//격자 색 설정
+			if(grade ==5){
+					grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[0]);
+			}else if(grade ==4)	{
+					grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[1]);
+			}else if(grade ==3)	{
+					grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[2]);
+			}else if(grade ==2)	{
+					grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[3]);
+			}else if(grade ==1)	{
+					grid.SetGridCellColor(gridData[i].index_y, gridData[i].index_x, gridCellColor[4]);
+			}
+			// 셀 높이 설정
+			grid.SetGridCellHeight(gridData[i].index_y, gridData[i].index_x, gridData[i].result*10000);
+			//격자 외곽라인 색 설정
+			grid.SetGridCellLineColor(gridData[i].index_y, gridData[i].index_x,  new Module.JSColor(150, 0,0,0));
+		}
+	
+	// 설정한 옵션으로 그리드 객체 형태 생성
+	grid.Create();
+	
+	return grid;
+}
+

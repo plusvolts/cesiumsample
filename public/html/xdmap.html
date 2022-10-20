@@ -133,7 +133,7 @@
 		<!-- ★★★★★★대메뉴3_건물★★★★★★ -->
 		<div class="rightTab hide" id="d_infra">			
 			<ul class="tabs_2">
-				<li rel="tab3" class="active">객체 관리</li>
+				<li rel="tab3" class="active">모델객체 관리</li>
 				<li rel="tab4">객체 이동&이벤트</li>										
 			</ul>
 			<div class="tab_container">					
@@ -153,7 +153,7 @@
 						<span class="color_legend" style="background: #ffff96"></span>
 						건물 삭제
 						<label class="input_switch fl_r">
-							<input type="checkbox" onchange="removeOSMBuilding(this.checked)">
+							<input type="checkbox" onchange="removeOSMBuilding(this.checked)" id="rm_vbuilding">
 							<span class="input_slider round"></span>
 						</label>
 					</li>					
@@ -280,7 +280,7 @@
 				<ul class="underground_Facility">
 					<li>
 						<span class="color_legend" style="background: #ffff"></span>
-						수자원(하천망)
+						개발제한구역
 						<label class="input_switch fl_r">
 							<input type="checkbox" onchange="addWfsLayer(this.checked, this.id)" id="lt_c_wkmstrm">
 							<span class="input_slider round"></span>
@@ -322,23 +322,19 @@
 					<button class="btn_2" onclick="playSnowEffect()">눈 효과 적용</button>
 					<button class="btn_2" onclick="playRainEffect()">비 효과 적용</button>
 					하늘 밝기
-					<input type="range" max="1" min="-1" step="0.01" value="-0.2" style="width:80%" onchange="setSkyBright(this.value)"><br/>
+					<input type="range" max="1" min="0" step="0.1" value="0.2" style="width:80%" onchange="setSkyBright(this.value)"><br/>
 					가시 범위(안개)
-					<input type="range" max="0.005" min="0" step="0.0001" value="0.005" style="width:80%" onchange="setFogDensity(this.value)">
+					<input type="range" max="49" min="0" step="1" value="35" style="width:80%" onchange="setFogDensity(this.value)">
 					<button class="btn_1" onclick="removeWeatherEntity()">기상 효과 제거</button>
 				</div>
 			</div>
 			<div id="tab6" class="tab_content_3 js_scroll hide">					
 				<div class="sub2_container js_scroll">							
 					<h3>전세계 인구통계(막대그래프)</h3>
-					<button class="btn_2" onclick="createSeriesSetter('1990')">1990년</button>
-					<button class="btn_2" onclick="createSeriesSetter('1995')">1995년</button>
-					<button class="btn_2" onclick="createSeriesSetter('2000')">2000년</button>
+					<button class="btn_2" onclick="createSeriesSetter('2D')">2D</button>
+					<button class="btn_2" onclick="createSeriesSetter('3D')">3D</button>
 					<button class="btn_2" onclick="createSeriesSetter(false)">데이터 삭제</button>
 
-					<h3>클러스터링 데이터(막대그래프)</h3>					
-					  <button class="btn_2" onclick="getClusterData()">데이터 불러오기</button>
-					  <button class="btn_2" onclick="removeClusterData()">데이터 삭제</button>
 				</div>
 			</div>
 		</div>	
