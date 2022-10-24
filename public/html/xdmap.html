@@ -26,7 +26,7 @@
 			<li class="m_1 active" id="t_map">지도</li>
 			<li class="m_2" id="t_search">검색</li>
 			<li class="m_4" id="t_drawobj">기본객체관리</li>
-			<li class="m_3" id="t_infra">객체관리</li>
+			<li class="m_3" id="t_infra">모델객체관리</li>
 			<li class="m_4" id="t_mapadmin">레이어추가</li>
 			<li class="m_5" id="t_algorithm">현실정보</li>
 		</ul>
@@ -39,7 +39,17 @@
 			</h1>			
 			<div class="sub_container js_scroll">
 				<h3>XDWorld 지도 호출</h3>
-				<button class="btn_1" onclick="callCesiumMap()">지도호출</button>
+				<button class="btn_1" onclick="callXDWorldMap()">지도호출</button>
+				<ul class="underground_Facility">					
+					<li>
+						<span class="color_legend" style="background: #c5e0b4"></span>
+						네비게이터 모드
+						<label class="input_switch fl_r">
+							<input type="checkbox" onclick="setNavigatorVisible(this.checked)" id="navigator">
+							<span class="input_slider round"></span>
+						</label>
+					</li>			
+				</ul>		
 			</div>			
 		</div>
 		<!-- ★★★★★★대메뉴2_검색 ★★★★★★ -->
@@ -98,8 +108,8 @@
 					</div >
 					<div id="tab2" class="tab_content">						
 						<span class="search">
-							<input type="text" placeholder="검색어를 입력해 주세요">
-							<button>검색</button>
+							<input id="searchKeyword" type="text" placeholder="검색어를 입력해 주세요">
+							<button onclick=searchPlace(1);>검색</button>
 						</span>
 						<h2></h2>
 						<div class="search_list js_scroll">
@@ -110,18 +120,7 @@
 						</div>
 						<div class="s_paging_wrap">
 							<ul class="s_paging">
-								<li>◀</li>
-								<li>1</li>
-								<li>2</li>
-								<li>3</li>
-								<li>4</li>
-								<li>5</li>
-								<li>6</li>
-								<li>7</li>
-								<li>8</li>
-								<li>9</li>
-								<li>10</li>
-								<li>▶</li>
+								
 							</ul>
 						</div>
 					</div>					
@@ -129,6 +128,20 @@
 				<!-- .tab_container -->
 			</div>
 			<!-- #container -->
+		</div>
+		<!-- ★★★★★★대메뉴4_베이스맵★★★★★★ -->
+		<div class="rightTab hide" id="d_drawobj">
+			<h1>
+				<span>기본 객체 관리</span>
+			</h1>
+			<div class="sub3_container js_scroll">
+				<h3>객체 그리기</h3>
+					<button class="btn_2" onclick="drawInterection(1)">Point 그리기</button>					
+					<button class="btn_2" onclick="drawInterection(2)">LineString 그리기</button>					
+					<button class="btn_2" onclick="drawInterection(3)">Polygon 그리기</button>					
+					<button class="btn_2" onclick="drawInterection(0)">마우스 클릭 삭제모드</button>					
+					<button class="btn_1" onclick="removeAllEntity()">기본 객체 전체 삭제</button>					
+			</div>
 		</div>
 		<!-- ★★★★★★대메뉴3_건물★★★★★★ -->
 		<div class="rightTab hide" id="d_infra">			
@@ -145,15 +158,23 @@
 						<span class="color_legend" style="background: #ffff96"></span>
 						VWORLD 건물
 						<label class="input_switch fl_r">
-							<input type="checkbox" onchange="addOSMBuilding(this.checked)">
+							<input type="checkbox" onchange="addVWorldBuilding(this.checked)" id="VWorldBuilding">
 							<span class="input_slider round"></span>
 						</label>
 					</li>
 					<li>
 						<span class="color_legend" style="background: #ffff96"></span>
-						건물 삭제
+						마우스 클릭 건물 삭제 
 						<label class="input_switch fl_r">
-							<input type="checkbox" onchange="removeOSMBuilding(this.checked)" id="rm_vbuilding">
+							<input type="checkbox" onchange="removeVWorldBuilding(this.checked)" id="rm_vbuilding">
+							<span class="input_slider round"></span>
+						</label>
+					</li>
+					<li>
+						<span class="color_legend" style="background: #ffff96"></span>
+						텍스쳐모드
+						<label class="input_switch fl_r">
+							<input type="checkbox" onchange="setBuildingTexture(this.checked)" id="change_texture">
 							<span class="input_slider round"></span>
 						</label>
 					</li>					
@@ -164,7 +185,7 @@
 						<span class="color_legend" style="background: #c5e0b4"></span>
 						드론
 						<label class="input_switch fl_r">
-							<input type="checkbox" onclick="addModelEntity(this.checked, 'CesiumDrone', 150)">														
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'drone', 150)">														
 							<span class="input_slider round"></span>
 						</label>
 					</li>	
@@ -172,7 +193,7 @@
 						<span class="color_legend" style="background: #c5e0b4"></span>
 						경찰서
 						<label class="input_switch fl_r">
-							<input type="checkbox" onclick="addModelEntity(this.checked, 'Cesium_Air', 250)">
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'policeStation', 250)">
 							<span class="input_slider round"></span>
 						</label>
 					</li>					
@@ -180,7 +201,7 @@
 						<span class="color_legend" style="background: #c5e0b4"></span>
 						건물
 						<label class="input_switch fl_r">
-							<input type="checkbox" onclick="addModelEntity(this.checked, 'Cesium_Man', 200)">							
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'building_1', 200)">							
 							<span class="input_slider round"></span>
 						</label>
 					</li>						
@@ -188,7 +209,7 @@
 						<span class="color_legend" style="background: #c5e0b4"></span>
 						주거
 						<label class="input_switch fl_r">
-							<input type="checkbox" onclick="addModelEntity(this.checked, 'CesiumMilkTruck', 100)">																					
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'house', 100)">																					
 							<span class="input_slider round"></span>
 						</label>
 					</li>	
@@ -196,11 +217,11 @@
 						<span class="color_legend" style="background: #c5e0b4"></span>
 						병원
 						<label class="input_switch fl_r">
-							<input type="checkbox" onclick="addModelEntity(this.checked, 'GroundVehicle', 50)">																												
+							<input type="checkbox" onclick="addModelEntity(this.checked, 'hospital', 50)">																												
 							<span class="input_slider round"></span>
 						</label>
 					</li>	
-					<button class="btn_1" onclick="removeAllEntity()">사용자 객체삭제</button>					
+					<button class="btn_1" onclick="removeAll3DEntity()">모델객체 전체삭제</button>					
 				</ul>
 			</div>
 		</div>
@@ -212,7 +233,7 @@
 							<span class="color_legend" style="background: #c5e0b4"></span>
 							비행선
 							<label class="input_switch fl_r">
-								<input type="checkbox" onclick="addModelEntity(this.checked, 'CesiumBalloon', 100)">																																				
+								<input type="checkbox" onclick="addModelEntity(this.checked, 'Airship', 100)">																																				
 								<span class="input_slider round"></span>
 							</label>
 						</li>			
@@ -238,7 +259,7 @@
 							</label>
 						</li>				
 					</ul>
-					<button class="btn_1" onclick="removeAllEntity()">사용자 객체삭제</button>	
+					<button class="btn_1" onclick="removeAll3DEntity()">모델객체 전체삭제</button>	
 				</div>
 			</div>
 		 </div>
@@ -309,7 +330,7 @@
 					<ul class="underground_Facility">
 						<li>
 							<span class="color_legend" style="background: #ffff96"></span>
-							그림자 표현
+							VWorld 건물 추가
 							<label class="input_switch fl_r">
 								<input type="checkbox" onchange="addShadowEffect(this.checked)">
 								<span class="input_slider round"></span>
@@ -330,7 +351,7 @@
 			</div>
 			<div id="tab6" class="tab_content_3 js_scroll hide">					
 				<div class="sub2_container js_scroll">							
-					<h3>전세계 인구통계(막대그래프)</h3>
+					<h3>해양 경찰청 격자통계</h3>
 					<button class="btn_2" onclick="createSeriesSetter('2D')">2D</button>
 					<button class="btn_2" onclick="createSeriesSetter('3D')">3D</button>
 					<button class="btn_2" onclick="createSeriesSetter(false)">데이터 삭제</button>
@@ -340,20 +361,7 @@
 		</div>	
 	</div>
 
-	<!-- ★★★★★★대메뉴4_베이스맵★★★★★★ -->
-	<div class="rightTab hide" id="d_drawobj">
-		<h1>
-			<span>기본 객체 관리</span>
-		</h1>
-		<div class="sub3_container js_scroll">
-			<h3>객체 그리기</h3>
-				<button class="btn_2" onclick="drawInterection(1)">Point 그리기</button>					
-				<button class="btn_2" onclick="drawInterection(2)">LineString 그리기</button>					
-				<button class="btn_2" onclick="drawInterection(3)">Polygon 그리기</button>					
-				<button class="btn_2" onclick="drawInterection(0)">마우스 이동모드</button>					
-				<button class="btn_1" onclick="removeDrawEntity()">그리기 객체 삭제</button>					
-		</div>
-	</div>
+
 
 
 </div>
