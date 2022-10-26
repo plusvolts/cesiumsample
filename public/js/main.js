@@ -7,6 +7,49 @@ function windowResize(){
     $('#cesiumContainer').height(window.innerHeight);
 }
 
+function initUIEvent(){
+	
+	/**검색 입력칸 엔터이벤트 */
+	$('#searchKeyword').on('keypress', function(e){
+		if(e.keyCode == 13){
+			$('.search button').click();
+			$('#searchKeyword').blur();
+		}
+	});
+
+	//위치 검색 페이지 이동	(동적요소에 .click()이 적용 안되는 오류가 있음)
+	$(document).on('click', '.s_paging li',function(e){
+		let num = this.innerText;
+
+		if($(this).attr('disabled') == 'disabled'){
+			return;
+		}
+
+		if(num == '▶'){
+			num = Number($('#currnetPage').text())+1;
+		}else if(num == '◀'){
+			num = Number($('#currnetPage').text())-1;
+		}
+	
+		searchPlace(num);
+	});
+	
+	//위치 검색 결과 클릭 시 좌표 이동
+	$(document).on('click', '.s_location li',function(e){
+    let lon = this.dataset.pointx;
+    let lat = this.dataset.pointy;
+    let alt = 1000;
+
+    viewer.camera.flyTo({      
+      destination : Cesium.Cartesian3.fromDegrees(lon,lat,alt),
+    }); 
+
+	})
+
+
+}
+
+
 // ##실습1. 회원가입하고 받은 토큰 입력
 Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMjM1MzczNC1mOWUzLTRkY2MtOGE4YS1jODhhMWFiM2FhZmUiLCJpZCI6OTI5NDksImlhdCI6MTY1MjA4MjQ4N30.Wz337yXpbIMkdzH6akRsuzEwJSGiU1b1iq1FXYCeuiE';
 
@@ -47,6 +90,8 @@ function callCesiumMap(){
           
     });      
     scene = viewer.scene;  
+
+    initUIEvent();
 }
 
 //카메라 이동합수
@@ -62,12 +107,13 @@ function moveCamera(){
             pitch : Cesium.Math.toRadians(-30.0),
         }
     }); 
-    //##실습2. 기본 지도 로딩 함수 추가. 지정 좌표로 위치 이동 소스 추가
 }
+
 
 var lClickEvent;              //이벤트 등록 여부
 var lClickEventFlag = false; //이벤트 작동 여부
 var eventHandler;             //이벤트 핸들러
+/** 클릭지점 좌표 */
 function setMouseLClickEvent(cFlag){  
   if(eventHandler == undefined){
     eventHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas); //핸들러 생성
@@ -76,24 +122,115 @@ function setMouseLClickEvent(cFlag){
     lClickEventFlag = true; //이벤트 작동
     lClickEvent = true;     //이벤트 등록
     eventHandler.setInputAction(function(movement){   //이벤트 핸들러
-        if(lClickEventFlag){ //이벤트 작동일때
-          var cartesian = viewer.camera.pickEllipsoid(movement.position, scene.globe.ellipsod); //위치값 화면 좌표
-          if(cartesian){
-             //##실습9. 이벤트에서 화면 좌표를 실세계 좌표로 변환하는 소스 추가
-            var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-            var longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(4); //좌표로 변환
-            var latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(4);   //좌표로 변환
-         
-            $('#evntLon').val(longitude); //인풋에 입력
-            $('#evntLat').val(latitude);
-             //##실습9. 이벤트에서 화면 좌표를 실세계 좌표로 변환하는 소스 추가
-          } 
-        }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-    }else{
-      lClickEventFlag = cFlag;
-    }
+      if(lClickEventFlag){ //이벤트 작동일때
+        var cartesian = viewer.camera.pickEllipsoid(movement.position, scene.globe.ellipsod); //위치값 화면 좌표
+        if(cartesian){
+          //##실습9. 이벤트에서 화면 좌표를 실세계 좌표로 변환하는 소스 추가
+          var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          var longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(4); //좌표로 변환
+          var latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(4);   //좌표로 변환
+          
+          $('#evntLon').val(longitude); //인풋에 입력
+          $('#evntLat').val(latitude);
+          //##실습9. 이벤트에서 화면 좌표를 실세계 좌표로 변환하는 소스 추가
+        } 
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  }else{
+    lClickEventFlag = cFlag;
   }
+}
+
+/*위치 검색 함수*/
+function searchPlace(pageNum){
+  
+  viewer.entities.removeAll();
+  //검색할 키워드
+  var keyword = $('#searchKeyword').val();
+
+  var params = {
+        service: "search"
+        , request: "search"
+        , version: "2.0"
+        , crs: "EPSG:4326"
+        , size: 10
+        , page: pageNum
+        , query: keyword
+        , type: 'PLACE'
+        , format: "json"
+        , errorformat: "json"
+        , key: "79D419E6-64C6-3B88-846C-1CEB694E66BB"
+    }
+
+
+    $.ajax({
+        type: 'GET'
+        , url: "http://api.vworld.kr/req/search"
+        , dataType: 'JSONP'
+        , data: params
+        , success: function (data) {
+      //검색 결과 목록 배치
+      $('#tab2 h2').html("<span>"+keyword+"</span> 검색결과입니다.");
+      let result = '';
+      for(let i = 0; i<data.response.record.current; i++){
+      
+        result += '<li class="title active" data-pointx='+data.response.result.items[i].point.x+' data-pointy='+data.response.result.items[i].point.y+'><ul>';
+        result += '<li>'+data.response.result.items[i].title+'</li>';
+        result += '<li>'+data.response.result.items[i].address.parcel+'</li>';
+        result += '<li class="addr">'+data.response.result.items[i].address.road+"</li>";
+        result += '<li class="phone">'+data.response.result.items[i].id+'<span> | '+data.response.result.items[i].category+'</span></li></ul></li>';
+
+        $('.s_location').html(result);
+        //검색 결과 point 배치
+        setSearchPOINT(data.response.result.items[i].point.x, data.response.result.items[i].point.y, i);
+
+      }
+
+      //검색 결과 페이징 목록 배치
+      let pageData = data.response.page;
+      let pagination = ''; 
+      let startPage = (parseInt((pageData.current-1)/10)*10)+1; //시작페이지
+      let endPage = startPage+(pageData.size-1); //끝페이지
+
+      if(pageData.current == '1'){
+        pagination += '<li disabled>◀</li>';
+      }else{
+        pagination += '<li>◀</li>';
+      }
+      let maxPage = pageData.total < endPage ? pageData.total : endPage;
+      for(let i = startPage; i<=maxPage; i++){
+        if(pageData.current == i){
+          pagination += "<li id='currnetPage' disabled>"+i+"</li>";
+        }else{
+          pagination += "<li>"+i+"</li>";
+        }
+      }
+
+      if(pageData.current == pageData.total){
+        pagination += '<li disabled>▶</li>';
+      }else{
+        pagination += '<li>▶</li>';
+      }
+
+
+      $('.s_paging').html(pagination);
+
+        }
+    })
+}
+
+/**검색 위치 마크 */
+function setSearchPOINT(x, y, i){
+
+  viewer.entities.add({
+    name : "searchMark"+i,
+    position : Cesium.Cartesian3.fromDegrees(Number(x), Number(y)),
+    billboard : {
+      image : '/img/num/icon_list_'+(i+1)+'.png',
+    },
+  })
+
+}
 
 //건물 객체 변수
 var osmPrimitive;
@@ -221,7 +358,7 @@ function createModel(mName, height) {
 function removeAllEntity(){
     //##실습8. 전체 엔티티 삭제
     viewer.entities.removeAll();
-     //##실습8. 전체 엔티티 삭제
+    $('.modelObject input[type=checkbox]').attr('checked', false);
 }
 
 
@@ -282,12 +419,15 @@ function setMouseRClickEvent(cFlag, inptId){
         if(rClickEventType){
           const feature = scene.pick(movement.position);
           if(rClickEventType == 'RCL_DELETE'){
+            
             if (!Cesium.defined(feature)) { //선택 지점에 객체 없으면 리턴
               return;
             }else{
               //##실습10. 선택 객체 숨기는 소스 추가
-              feature.show = false;         //오른쪽 마우스클릭 선택객체 숨기기
+              // feature.show = false;         //오른쪽 마우스클릭 선택객체 숨기기
               //##실습10. 선택 객체 숨기는 소스 추가
+
+              viewer.entities.removeById(feature.id._id);//오른쪽 마우스클릭 선택객체 숨기기
             }            
           }else  if(rClickEventType == 'RCL_MAKE'){ //오른쪽 클릭으로 객체 생성
             rClickMake(movement);
@@ -377,7 +517,7 @@ function addWfsLayer(cFlag, layerName){
         if(cFlag){
             //##실습13. wfs정보 추가하는 소스 추가   
             wfsIndexLayer = Cesium.GeoJsonDataSource.load( //wfs를 geojosn타입으로 추가
-                '/proxywfs?service=WFS&request=GetFeature&VERSION=1.1.0&maxFeatures=50&output=application/json&KEY=42F6D36E-1A78-34B7-959F-37611794397B&DOMAIN=localhost:8080&crs=EPSG:4326&srsname=EPSG:4326&typeName='+layerName            
+                '/proxywfs?service=WFS&request=GetFeature&VERSION=1.1.0&maxFeatures=50&output=application/json&KEY=F1D04FBB-DBB3-3F07-9B45-2FA496499F9B&DOMAIN=localhost:8080&crs=EPSG:4326&srsname=EPSG:4326&typeName='+layerName            
             ,{ //스타일 지정 
                 stroke : Cesium.Color.WHITE,
                 strokeWidth:5
@@ -447,7 +587,7 @@ function createSeriesSetter(timeStr){
         showSttData(timeStr)
     }else{
         if(timeStr) sttDataSource.seriesToDisplay = timeStr; //통계데이터 시점 선택
-        else sttDataSource.show=false;                       //통계 데이터 보임 여부
+        else viewer.dataSources.remove(sttDataSource); sttDataSource = undefined;//sttDataSource.show=false;           //통계 데이터 보임 여부
     }   
 }
 
@@ -666,6 +806,7 @@ var RAIN_ENTITY; //비효과 엔티티
 
 function playSnowEffect(){
   
+  
   scene.primitives.removeAll();//기존 추가된 객체 삭제
   //##실습17. 눈 효과 추가
   SNOW_ENTITY = scene.primitives.add(
@@ -759,11 +900,21 @@ var floatingPoint = undefined;
 var activeShape = undefined;
 var activeShapePoints = [];
 var DrawMode = 1;
-function drawInterection(){
-  var drawHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
-  drawHandler.setInputAction(function(event){
-    var mPosition = viewer.scene.pickPosition(event.position);
-    //var mPosition = viewer.camera.pickEllipsoid(event.position, scene.globe.ellipsod);
+var drawHandler;
+
+function drawInterection(num){
+  DrawMode = num;
+
+  if(DrawMode == 0){
+    terminateShape();
+    drawHandler.destroy();
+    return;
+  }
+  drawHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+
+  drawHandler.setInputAction(function(event){//좌클릭 이벤트 핸들러
+    // var mPosition = viewer.scene.pickPosition(event.position);
+    var mPosition = viewer.camera.pickEllipsoid(event.position, scene.globe.ellipsod);
     if(Cesium.defined(mPosition)){
       if(activeShapePoints.length == 0){ //생성된 포인트가 없을때
         floatingPoint = createPoint(mPosition);
@@ -784,8 +935,8 @@ function drawInterection(){
 
   drawHandler.setInputAction(function(event){
     if(Cesium.defined(floatingPoint)){
-      var newPosition = viewer.scene.pickPosition(event.endPosition);
-      //var newPosition = viewer.camera.pickEllipsoid(event.position, scene.globe.ellipsod)
+      // var newPosition = viewer.scene.pickPosition(event.endPosition);
+      var newPosition = viewer.camera.pickEllipsoid(event.endPosition, scene.globe.ellipsod)
       if(Cesium.defined(newPosition)){
         floatingPoint.position.setValue(newPosition);
         activeShapePoints.pop();
@@ -801,14 +952,14 @@ function drawInterection(){
 
 function terminateShape(){
   activeShapePoints.pop();
+  viewer.entities.remove(activeShape);
   //drawShape(activeShapePoints);
   if(DrawMode == 2){ //라인
     activeShape = drawLinestring(activeShapePoints);
   }if(DrawMode == 3){ //폴리곤
     activeShape = drawPolygon(activeShapePoints);
-  }        
+  }       
   viewer.entities.remove(floatingPoint);
-  viewer.entities.remove(activeShape);
   floatingPoint = undefined;
   activeShape = undefined;
   activeShapePoints = [];
@@ -845,6 +996,10 @@ function drawPolygon(cPos){
     }
   });  
   return polygon;
+}
+
+function removeDrawEntity(){
+  viewer.entities.removeAll();
 }
 
 //end
