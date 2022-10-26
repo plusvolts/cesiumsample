@@ -45,7 +45,7 @@
 			</h1>			
 			<div class="sub_container js_scroll">
 				<h3>Cesium 지도 호출</h3>
-				<button class="btn_1" onclick="callCesiumMap()"">지도호출</button>
+				<button class="btn_1" onclick="callCesiumMap()">지도호출</button>
 				<h3>지도 툴바 구성 옵션</h3>
 				<ul class="map_base">
 					<li>						
@@ -136,7 +136,7 @@
 			<div id="container">
 				<ul class="tabs">
 					<li rel="tab1" class="active">좌표로 이동</li>
-					<li rel="tab2">네이버위치검색</li>										
+					<li rel="tab2">VWorld 위치검색</li>										
 				</ul>
 				<div class="tab_container">					
 					<div id="tab1" class="tab_content">						
@@ -186,37 +186,18 @@
 					</div>					
 					<div id="tab2" class="tab_content">						
 						<span class="search">
-							<input type="text" placeholder="검색어를 입력해 주세요">
-							<button>검색</button>
+							<input type="text" id="searchKeyword" placeholder="검색어를 입력해 주세요">
+							<button onclick="searchPlace(1);">검색</button>
 						</span>
-						<h2><span>종로구 수송동</span>검색 결과 입니다.</h2>
+						<h2></h2>
 						<div class="search_list js_scroll">
 							<ul class="s_location">
-								<!-- 위치검색 결과 반복_1~10개까지 그이후 다음페이지 -->
-								<li class="title active">
-									<ul>
-										<li>이름</li>
-										<li>지번</li>
-										<li class="addr">도로명</li>
-										<li class="phone">우편번호or전화번호 <span>| 대분류 &gt; 소분류</span></li>
-									</ul>
-								</li>								 	
+														 	
 							</ul>
 						</div>
 						<div class="s_paging_wrap">
 							<ul class="s_paging">
-								<li>◀</li>
-								<li>1</li>
-								<li>2</li>
-								<li>3</li>
-								<li>4</li>
-								<li>5</li>
-								<li>6</li>
-								<li>7</li>
-								<li>8</li>
-								<li>9</li>
-								<li>10</li>
-								<li>▶</li>
+								
 							</ul>
 						</div>
 					</div>					
@@ -270,7 +251,7 @@
 					</li>				
 				</ul>
 				<h3>파일 객체 추가</h3>
-				<ul class="underground_Facility">					
+				<ul class="underground_Facility modelObject">					
 					<li>
 						<span class="color_legend" style="background: #c5e0b4"></span>
 						비행기
@@ -311,14 +292,14 @@
 							<span class="input_slider round"></span>
 						</label>
 					</li>	
-					<button class="btn_1" onclick="removeAllEntity()">사용자 객체삭제</button>					
+					<button class="btn_1" onclick="removeAllEntity()">모델객체 전체삭제 </button>					
 				</ul>
 			</div>
 		</div>
 			<div id="tab4" class="tab_content_2 js_scroll">					
 				<div class="sub2_container js_scroll">							
 					<h3>애니메이션 설정</h3>
-					<ul class="underground_Facility">					
+					<ul class="underground_Facility modelObject">					
 						<li>
 							<span class="color_legend" style="background: #c5e0b4"></span>
 							애드벌룬
@@ -331,7 +312,7 @@
 					<button class="btn_2" onclick="playCarAnimation()">애니메이션 시작</button>
 					<button class="btn_2" onclick="stopCarAnimation()">애니메이션 멈춤</button>
 					<h3>마우스로 객체 추가&삭제</h3>
-					<ul class="underground_Facility">					
+					<ul class="underground_Facility modelObject">					
 						<li>
 							<span class="color_legend" style="background: #c5e0b4"></span>
 							우클릭 객체 삭제
@@ -349,7 +330,7 @@
 							</label>
 						</li>				
 					</ul>
-					<button class="btn_1" onclick="removeAllEntity()">사용자 객체삭제</button>	
+					<button class="btn_1" onclick="removeAllEntity()">모델객체 전체삭제</button>	
 				</div>
 			</div>
 		 </div>
@@ -460,31 +441,12 @@
 			<span>기본 객체 관리</span>
 		</h1>
 		<div class="sub3_container js_scroll">
-			<h3>객체 그리기</h3>
+			<h3>객체 그리기(우클릭 종료)</h3>
 				<button class="btn_2" onclick="drawInterection(1)">Point 그리기</button>					
 				<button class="btn_2" onclick="drawInterection(2)">LineString 그리기</button>					
 				<button class="btn_2" onclick="drawInterection(3)">Polygon 그리기</button>					
 				<button class="btn_2" onclick="drawInterection(0)">마우스 이동모드</button>					
-				<button class="btn_1" onclick="removeDrawEntity()">그리기 객체 삭제</button>					
-			<h3>WFS 레이어 추가</h3>
-			<ul class="underground_Facility">
-				<li>
-					<span class="color_legend" style="background: #ffff"></span>
-					수자원(하천망)
-					<label class="input_switch fl_r">
-						<input type="checkbox" onchange="addWfsLayer(this.checked, this.id)" id="lt_c_wkmstrm">
-						<span class="input_slider round"></span>
-					</label>
-				</li>	
-				<li>
-					<span class="color_legend" style="background: #ffff"></span>
-					교통노드
-					<label class="input_switch fl_r">
-						<input type="checkbox" onchange="addWfsLayer(this.checked, this.id)" id="lt_p_moctnode">
-						<span class="input_slider round"></span>
-					</label>
-				</li>					
-			</ul>
+				<button class="btn_1" onclick="removeDrawEntity()">기본객체 전체 삭제</button>					
 		</div>
 	</div>
 </div>

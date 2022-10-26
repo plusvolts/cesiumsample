@@ -59,30 +59,6 @@ function initUIEvent(){
 		}
 	};
 
-	/*$('#right_tab_btn li').click(function(e){
-		// console.log(this.className.includes('active'));
-
-		let menu = this.innerText;
-		console.log(menu);
-		var layerList = new Module.JSLayerList(true);
-
-		if(menu != '검색'){
-			layerList.delLayerAtName('Search_POI');
-			$('#searchKeyword').val('');
-			$('.s_location').html('');
-			$('#tab2 h2').html("");
-			$('.s_paging').html('');
-			$('#container .tabs').children('li').eq(0).click();
-		}
-
-		if(menu != '기본객체관리'){
-			layerList.delLayerAtName('POI_Layer');
-			layerList.delLayerAtName('LINE_Layer');
-			layerList.delLayerAtName('POLYGON_Layer');
-		}
-
-	})*/
-
 }
 
 // 2. 기본지도 호출 함수 
@@ -730,7 +706,7 @@ function removeAll3DEntity(){
 		}
 	}
 
-	$('.underground_Facility input[type=checkbox]').attr('checked', false);
+	$('.modelObject input[type=checkbox]').attr('checked', false);
 
 	//마우스 클릭 객체 삭제
 	layer = layerlist.nameAtLayer('RClickLayer');
