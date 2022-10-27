@@ -915,21 +915,32 @@ function drawInterection(num){
   drawHandler.setInputAction(function(event){//좌클릭 이벤트 핸들러
     // var mPosition = viewer.scene.pickPosition(event.position);
     var mPosition = viewer.camera.pickEllipsoid(event.position, scene.globe.ellipsod);
-    if(Cesium.defined(mPosition)){
-      if(activeShapePoints.length == 0){ //생성된 포인트가 없을때
-        floatingPoint = createPoint(mPosition);
+    if(Cesium.defined(mPosition)){      
+      if(activeShapePoints.length == 0){ //생성된 포인트가 없을때        
         activeShapePoints.push(mPosition);
         var drawPositions = new Cesium.CallbackProperty(function(){
           return activeShapePoints;
         }, false);
+        if(DrawMode == 1){
+          createPoint(mPosition);
+          terminateShape();
+          drawHandler.destroy();
+        }else{
+          floatingPoint = createPoint(mPosition);        
+        }
         if(DrawMode == 2){ //라인
           activeShape = drawLinestring(drawPositions);
-        }if(DrawMode == 3){ //폴리곤
+        }else if(DrawMode == 3){ //폴리곤
           activeShape = drawPolygon(drawPositions);
         }    
-      }
-      activeShapePoints.push(mPosition);
-      createPoint(mPosition);
+      }else{        
+        activeShapePoints.push(mPosition);
+        createPoint(mPosition);
+        if(DrawMode == 1){ //별도 함수로 만들어서 재사용 필요
+          terminateShape();
+          drawHandler.destroy();
+        }
+      }      
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
