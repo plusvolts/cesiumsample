@@ -46,6 +46,11 @@ function initUIEvent(){
 
 	})
 
+  // //Entity click 이벤트 해제
+  // viewer.selectedEntityChanged.addEventListener(function(e){
+  //   viewer.selectedEntity = undefined;
+  //   return false;
+  // })
 
 }
 
@@ -73,6 +78,8 @@ function callCesiumMap(){
     if(viewer != undefined) viewer.destroy();
     //지도를 로딩할 HTML 엘리먼트 아이디 입력 
     viewer = new Cesium.Viewer('cesiumContainer', {
+      selectionIndicator: false,
+      infoBox: false,
         terrainProvider: Cesium.createWorldTerrain({
             requestWaterMask: warterFlag,
             //requestVertexNormals: true
@@ -896,75 +903,84 @@ function removeWeatherEntity(){
 }
 
 //사용자 객체 그리기 기능 추가 2022.07.13
-var floatingPoint = undefined;
-var activeShape = undefined;
-var activeShapePoints = [];
-var DrawMode = 1;
+var floatingPoint = undefined; //커서 포인트
+var activeShape = undefined; //기본객체
+var activeShapePoints = []; //기본객체 좌표배열
+var DrawMode = 1; //기본 객체 모드(1 = point, 2 = line, 3 = polygon, 0 = mousemove)
 var drawHandler;
+var vertex=[];//line, polygon의 꼭지점 point 배열. 객체 생성 완료시 삭제
 
+//기본객체 그리기
 function drawInterection(num){
   DrawMode = num;
-
-  if(DrawMode == 0){
+  if(DrawMode == 0){//마우스 이동 모드 
     terminateShape();
-    drawHandler.destroy();
+    drawHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);//이벤트 핸들러 해제
     return;
   }
   drawHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
 
-  drawHandler.setInputAction(function(event){//좌클릭 이벤트 핸들러
-    // var mPosition = viewer.scene.pickPosition(event.position);
+  drawHandler.setInputAction(function(event){
+  
+    event.position.x -= 405;
     var mPosition = viewer.camera.pickEllipsoid(event.position, scene.globe.ellipsod);
-    if(Cesium.defined(mPosition)){      
-      if(activeShapePoints.length == 0){ //생성된 포인트가 없을때        
-        activeShapePoints.push(mPosition);
-        var drawPositions = new Cesium.CallbackProperty(function(){
-          return activeShapePoints;
-        }, false);
-        if(DrawMode == 1){
-          createPoint(mPosition);
-          terminateShape();
-          drawHandler.destroy();
-        }else{
-          floatingPoint = createPoint(mPosition);        
-        }
-        if(DrawMode == 2){ //라인
+    // var mPosition = viewer.scene.pickPosition(event.position);
+
+    if(Cesium.defined(mPosition)){
+      activeShapePoints.push(mPosition);
+      
+      if(activeShapePoints.length == 1){//처음 클릭 시
+        var point =  createPoint(mPosition);//포인트 생성
+        vertex.push(point);
+
+        if(DrawMode == 1){//point
+          terminateShape();//초기화
+        }else{//line, polygon 
+          floatingPoint = createPoint(mPosition); 
+
+          var drawPositions = new Cesium.CallbackProperty(function(){
+            var positions = activeShapePoints.slice();
+            positions.push(floatingPoint._position._value);
+            if(DrawMode == 3){positions.push(positions[0])};
+            return positions;
+          });
+
           activeShape = drawLinestring(drawPositions);
-        }else if(DrawMode == 3){ //폴리곤
-          activeShape = drawPolygon(drawPositions);
-        }    
-      }else{        
-        activeShapePoints.push(mPosition);
-        createPoint(mPosition);
-        if(DrawMode == 1){ //별도 함수로 만들어서 재사용 필요
-          terminateShape();
-          drawHandler.destroy();
         }
-      }      
+
+      }else{
+        var point = createPoint(mPosition); 
+        vertex.push(point);
+      }
     }
+
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
   drawHandler.setInputAction(function(event){
+    terminateShape();
+  }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
+  drawHandler.setInputAction(function(event){
     if(Cesium.defined(floatingPoint)){
-      // var newPosition = viewer.scene.pickPosition(event.endPosition);
       var newPosition = viewer.camera.pickEllipsoid(event.endPosition, scene.globe.ellipsod)
       if(Cesium.defined(newPosition)){
         floatingPoint.position.setValue(newPosition);
-        activeShapePoints.pop();
-        activeShapePoints.push(newPosition);
-      }
-    }
-  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+      }  
+    }  
+  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);  
 
-  drawHandler.setInputAction(function(event){
-    terminateShape();
-  }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);  
+
 }
 
 function terminateShape(){
-  activeShapePoints.pop();
   viewer.entities.remove(activeShape);
-  //drawShape(activeShapePoints);
+
+ if(DrawMode != 1){//vertex point 삭제
+    vertex.forEach((v) =>{
+      viewer.entities.remove(v);
+    })
+  }
+
   if(DrawMode == 2){ //라인
     activeShape = drawLinestring(activeShapePoints);
   }if(DrawMode == 3){ //폴리곤
@@ -974,6 +990,7 @@ function terminateShape(){
   floatingPoint = undefined;
   activeShape = undefined;
   activeShapePoints = [];
+  vertex = [];
 }
 
 function createPoint(cPos){
@@ -983,12 +1000,16 @@ function createPoint(cPos){
       color : Cesium.Color.RED,
       pixelSize : 10,
       heightReference : Cesium.HeightReference.CLAMP_TO_GROUND
+    }, 
+    lable : {
+      disableDepthTestDistance : Number.POSITIVE_INFINITY,
     }
   });
   return point;
 }
 
 function drawLinestring(cPos){
+
   var lineString = viewer.entities.add({
     polyline : {
       positions : cPos,
@@ -1000,10 +1021,12 @@ function drawLinestring(cPos){
 }
 
 function drawPolygon(cPos){
+
   var polygon = viewer.entities.add({
     polygon : {
       hierarchy : cPos,
-      material : new Cesium.ColorMaterialProperty(Cesium.Color.AQUA.withAlpha(0.015))      
+      material: Cesium.Color.RED.withAlpha(0.5),
+    classificationType: Cesium.ClassificationType.BOTH,      
     }
   });  
   return polygon;
@@ -1011,6 +1034,8 @@ function drawPolygon(cPos){
 
 function removeDrawEntity(){
   viewer.entities.removeAll();
+  terminateShape();
+  drawHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);//이벤트 핸들러 해제
 }
 
 //end

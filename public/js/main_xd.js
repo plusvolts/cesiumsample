@@ -59,6 +59,64 @@ function initUIEvent(){
 		}
 	};
 
+	//메뉴 클릭시 초기화
+	$('#right_tab_btn li').click(function(e){
+
+		var layerList = new Module.JSLayerList(true);
+		
+		if(this.innerText != '검색'){
+			$('#tab2 h2').html("");
+			$('.s_paging').html('');
+			$('.s_location').html('');
+			$('#searchKeyword').val('');
+			layerList.delLayerAtName("Search_POI");
+			$('.firstmenu').click()
+			// $('#container > ul').children('li').eq(0).click();
+	
+		}
+		if(this.innerText != '기본객체관리'){
+			layerList.setVisible('POI_Layer', false);
+			layerList.setVisible('LINE_Layer', false);
+			layerList.setVisible('POLYGON_Layer', false);
+		}else{
+			layerList.setVisible('POI_Layer', true);
+			layerList.setVisible('LINE_Layer', true);
+			layerList.setVisible('POLYGON_Layer', true);
+		}
+
+		if(this.innerText != '모델객체관리'){
+			Module.XDEMapRemoveLayer("facility_build");
+			$('.vworldBuilding input[type=checkbox]').attr('checked', false);
+			$('#removeAll3Dbtn').click();
+			$('.firstmenu').click()
+		}
+		if(this.innerText != '레이어추가'){
+			let servicelayerList = new Module.JSLayerList(false);		
+			servicelayerList.delLayerAtName('wmslayer_lt_c_ademd');
+			servicelayerList.delLayerAtName('wmslayer_lt_c_upisuq161');
+			servicelayerList.delLayerAtName('wmslayer_lt_c_wkmbbsn');
+
+			layerList.delLayerAtName('lt_c_ud801_Layer');
+			layerList.delLayerAtName('lt_p_moctnode_Layer');
+			$('#d_mapadmin input[type=checkbox]').attr('checked', false);
+
+			
+		}
+		if(this.innerText != '현실정보'){
+			Module.map.stopWeather();//기상효과 종료
+			Module.map.clearSnowfallArea();//적설효과 초기화
+			Module.map.setSnowfall(0);//적설효과 해제
+			Module.map.setFogEnable(false);//안개효과 적용
+			$('.firstmenu').click();
+			$('#removeDatabtn').click();
+			$('#tab5 input[type=checkbox]').attr('checked', false);
+		}
+
+	})
+	
+	
+
+
 }
 
 // 2. 기본지도 호출 함수 
@@ -221,6 +279,15 @@ function setMouseLClickEvent(val){
 function searchPlace(pageNum){
 	//검색할 키워드
 	var keyword = $('#searchKeyword').val();
+
+	if(keyword.trim().length == 0){
+		$('#tab2 h2').html("");
+		$('.s_paging').html('');
+		$('.s_location').html('');
+		var layerList = new Module.JSLayerList(true);
+		layerList.delLayerAtName("Search_POI");
+		return;
+	}
 
 	var params = {
         service: "search"
@@ -612,18 +679,20 @@ function addModelEntity(val, mName, height){
 	//고스트심볼맵 객체 반환
 	GLOBAL.ghostSymbolMap = Module.getGhostSymbolMap();
 
+	
+	
+	if(!val){
+		//해당 key의 고스트심볼 object 숨김
+		GLOBAL.ghostSymbolLayer.keyAtObject(mName).setVisible(false);
+		 if(mName == 'Airship'){stopCarAnimation();}
+		return;
+	}
+	
 	stopCarAnimation();//애니메이션 종료
-
 	var camera = Module.getViewCamera();
 	//카메라 이동
 	camera.setLocation(new Module.JSVector3D(127.099136, 37.499130, 1000));
 	camera.setTilt(90);
-
-	if(!val){
-		//해당 key의 고스트심볼 object 숨김
-		GLOBAL.ghostSymbolLayer.keyAtObject(mName).setVisible(false);
-		return;
-	}
 	
 	//고스트심볼맵에 이미 존재하는 모델데이터일 경우, 
 	var g = Module.getGhostSymbolMap().isExistID(mName);
@@ -721,7 +790,7 @@ function removeAll3DEntity(){
 		}
 	}
 
-	stopCarAnimation();//애니메이션 종료
+	// stopCarAnimation();//애니메이션 종료
 
 }
 
@@ -1100,7 +1169,7 @@ function createWFSPoint(data, layer){
 }
 
 //현실 시뮬레이션 > vworld 건물 추가
-function addShadowEffect(val){
+function addShadowBuilding(val){
 	Module.XDSetMouseState(1);//지도 이동 모드
 	if(val){
 		Module.XDEMapCreateLayer("facility_build", "https://xdworld.vworld.kr", 0, true, true, false, 9, 0, 15)//vworld 건물 레이어 생성
@@ -1192,9 +1261,7 @@ function removeWeatherEntity(){
 
 //통계표현
 function createSeriesSetter(type){
-	let camera = Module.getViewCamera();
-	camera.setAltitude(1000000);//카메라 높이 변경
-
+	
 	var layerList = new Module.JSLayerList(true);
 	
 	layerList.setVisible('LAYER_GRID_2D', false);//2D 레이어 숨김
@@ -1202,6 +1269,10 @@ function createSeriesSetter(type){
 	var layer;
 	
 	if(!type){return;}
+
+	let camera = Module.getViewCamera();
+	camera.setLocation(new Module.JSVector3D(127.037288, 36.014688, 1000000));
+	camera.move(new Module.JSVector3D(127.037288, 36.014688, 1000000), 90, 0, 1);
 	
 	//기존 레이어가 있다면 가시화, 없다면 생성
 	if(layerList.nameAtLayer('LAYER_GRID_'+type) != null){
@@ -1347,4 +1418,55 @@ function createGrid_3D(_data){
 	
 	return grid;
 }
+
+function addAnalysisBuilding(val){
+	Module.XDSetMouseState(1);//지도 이동 모드
+	if(val){
+		Module.XDEMapCreateLayer("facility_build", "https://xdworld.vworld.kr", 0, true, true, false, 9, 0, 15)//vworld 건물 레이어 생성
+		Module.setVisibleRange("facility_build", 3.0, 100000.0);
+		Module.getMap().setSimpleMode(false);//심플모드
+
+	}else{
+		Module.XDEMapRemoveLayer("facility_build");//vworld 건물 레이어 삭제
+	}
+}
+
+function setMouseAnlaysis(val){
+	if(val){
+		Module.XDSetMouseState(Module.MML_INPUT_LINE);
+	}else{
+		Module.XDSetMouseState(1);
+	}
+}
+
+function getSlopePlane(angle){
+	Module.getSlope().clearAnalysisData();
+	Module.getMap().clearSelectObj();
+	Module.getUserLayer().removeAll();
+
+	if(angle == null){
+		angle = Number($('#slopeRange').val());
+	}else{
+		angle*=1;
+	}
+	
+	var color = new Module.createColor();	// 시곡면 분석 색상 지정
+	color.setARGB(180, 255, 0, 0);
+	Module.getAnalysis().createSlopePlane(angle, color);	// 시곡면 분석 퍼짐 각도, 색상 설정
+
+	// Module.XDClearInputPoint();
+	
+
+}
+
+function clearSlopePlane(){
+		
+	Module.getSlope().clearAnalysisData();
+	Module.getMap().clearSelectObj();
+	Module.getUserLayer().removeAll();
+	Module.XDClearInputPoint();
+	Module.XDRenderData();
+}
+
+
 
