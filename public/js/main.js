@@ -924,6 +924,7 @@ function drawInterection(num){
   
     event.position.x -= 405;
     var mPosition = viewer.camera.pickEllipsoid(event.position, scene.globe.ellipsod);
+
     // var mPosition = viewer.scene.pickPosition(event.position);
 
     if(Cesium.defined(mPosition)){
