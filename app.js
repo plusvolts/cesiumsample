@@ -25,6 +25,7 @@ app.get('/maptest', function(req,res){
     res.sendFile(path.join(__dirname, 'public', 'html/map_before.html'))
 });
 
+
 const wmsUrl = "http://api.vworld.kr/req/wms";
 const wfsUrl = "http://api.vworld.kr/req/wfs";
 app.get('/proxywms', function(req, res) {    
