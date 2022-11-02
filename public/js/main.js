@@ -907,16 +907,17 @@ function removeWeatherEntity(){
 
 //사용자 객체 그리기 기능 추가 2022.07.13
 var floatingPoint = undefined; //커서 포인트
-var activeShape = undefined; //기본객체
+var activeShape = undefined; //기본객체 
 var activeShapePoints = []; //기본객체 좌표배열
 var DrawMode = 1; //기본 객체 모드(1 = point, 2 = line, 3 = polygon, 0 = mousemove)
-var drawHandler;
-var vertex=[];//line, polygon의 꼭지점 point 배열. 객체 생성 완료시 삭제
+var drawHandler = undefined;
+
 
 //기본객체 그리기
 function drawInterection(num){
+
   DrawMode = num;
-  if(drawHandler == null || drawHandler.isDestroyed()){
+  if(drawHandler == undefined || drawHandler.isDestroyed()){
     drawHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
   }
   if(DrawMode == 0){//마우스 이동 모드 
@@ -1056,6 +1057,7 @@ function removeDrawEntity(){
   viewer.entities.removeAll();
   terminateShape();
   drawHandler.destroy();//이벤트 핸들러 해제
+  
 }
 
 //end

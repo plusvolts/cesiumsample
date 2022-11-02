@@ -71,7 +71,6 @@ function initUIEvent(){
 			$('#searchKeyword').val('');
 			layerList.delLayerAtName("Search_POI");
 			$('.firstmenu').click()
-			// $('#container > ul').children('li').eq(0).click();
 	
 		}
 		if(this.innerText != '기본객체관리'){
@@ -111,9 +110,28 @@ function initUIEvent(){
 			$('#removeDatabtn').click();
 			$('#tab5 input[type=checkbox]').attr('checked', false);
 		}
+		if(this.innerText != '분석'){
+			Module.XDEMapRemoveLayer("facility_build");
+			Module.XDSetMouseState(1);
+			Module.getMap().clearInputPoint();
+			Module.getSlope().clearAnalysisData();
+			Module.getMap().clearSelectObj();
+			Module.getUserLayer().removeAll();
+
+			Module.getAnalysis().setVFMode(false);					// 가시권 3D 표현 여부 설정
+			Module.getAnalysis().setVFCreateClickMode(false);	
+
+			$('#tab7 input[type=checkbox]').attr('checked', false);
+			$('#tab8 input[type=checkbox]').attr('checked', false);
+
+		}
 
 	})
 	
+	$('.tabs_4').children('li').eq(1).click(function(e){
+		Module.XDSetMouseState(1);
+		Module.map.clearInputPoint();
+	})
 	
 
 
@@ -1419,23 +1437,28 @@ function createGrid_3D(_data){
 	return grid;
 }
 
+//시곡권분석 > vworld 건물 추가
 function addAnalysisBuilding(val){
 	Module.XDSetMouseState(1);//지도 이동 모드
 	if(val){
 		Module.XDEMapCreateLayer("facility_build", "https://xdworld.vworld.kr", 0, true, true, false, 9, 0, 15)//vworld 건물 레이어 생성
 		Module.setVisibleRange("facility_build", 3.0, 100000.0);
-		Module.getMap().setSimpleMode(false);//심플모드
+		Module.getMap().setSimpleMode(false);
 
 	}else{
 		Module.XDEMapRemoveLayer("facility_build");//vworld 건물 레이어 삭제
 	}
 }
 
+
+
+
 function setMouseAnlaysis(val){
+	
 	if(val){
-		Module.XDSetMouseState(Module.MML_INPUT_LINE);
+		Module.XDSetMouseState(21);//마우스 라인입력모드
 	}else{
-		Module.XDSetMouseState(1);
+		Module.XDSetMouseState(1);//마우스 지도이동모드
 	}
 }
 
@@ -1443,7 +1466,7 @@ function getSlopePlane(angle){
 	Module.getSlope().clearAnalysisData();
 	Module.getMap().clearSelectObj();
 	Module.getUserLayer().removeAll();
-
+	
 	if(angle == null){
 		angle = Number($('#slopeRange').val());
 	}else{
@@ -1453,14 +1476,12 @@ function getSlopePlane(angle){
 	var color = new Module.createColor();	// 시곡면 분석 색상 지정
 	color.setARGB(180, 255, 0, 0);
 	Module.getAnalysis().createSlopePlane(angle, color);	// 시곡면 분석 퍼짐 각도, 색상 설정
-
-	// Module.XDClearInputPoint();
 	
-
+	// Module.XDClearInputPoint();
 }
 
 function clearSlopePlane(){
-		
+	
 	Module.getSlope().clearAnalysisData();
 	Module.getMap().clearSelectObj();
 	Module.getUserLayer().removeAll();
@@ -1468,7 +1489,66 @@ function clearSlopePlane(){
 	Module.XDRenderData();
 }
 
-	
+var vFlag = false;
+function viewFireE(e){
+	var pAnal = Module.getAnalysis();
+	pAnal.setVFCreateClickMode(false);	// 건물이 선택되면 이후 클릭에서 가시권 인식을 안한다.
+	Module.getMap().clearSelectObj();	// 건물 선택에 대한 효과 제거
+	Module.getMap().MapRender();		// 화면 랜더링 갱신
+}
+function setViewshadeMode(val){
+	Module.XDSetMouseState(1);
+	Module.map.clearInputPoint();
+
+	var voEl = document.getElementsByClassName('viewOptions');
+	Module.getAnalysis().setVFMode(val);					// 가시권 3D 표현 여부 설정
+	Module.getAnalysis().setVFCreateClickMode(val);		// 마우스 클릭시 가시권 인식 설정
+	if(val){
+		Module.canvas.addEventListener("Fire_EventSelectedObject", viewFireE)
+		for(var i = 0; i<voEl.length; i++){
+			voEl[i].onmousedown = function(e){vFlag = true;}
+			voEl[i].onmousemove = function(e){
+				if(vFlag){
+					var optionVal = this.value;
+					var optionId = this.id;
+					setViewOption(optionVal, optionId);
+				}
+			}
+			voEl[i].onmouseup = function(e){vFlag = false;}
+		}
+	}else{
+		Module.map.clearSelectObj();
+		for(var i = 0; i<voEl.length; i++){
+			voEl[i].onmousedown = 'return false;'
+			voEl[i].onmousemove = 'return false;'
+			voEl[i].onmouseup = 'return false;'
+		}
+		Module.canvas.removeEventListener('Fire_EventSelectedObject', viewFireE);
+	}
+
+}
+
+function setViewOption(val, id){
+	var pAnal = Module.getAnalysis();
+	var vfov2D = pAnal.getVFFov();
+	switch(id){
+		case 'viewPan':pAnal.setVFPan(parseInt(val));
+			break;
+		case 'viewTilt' : pAnal.setVFTilt(parseInt(val));
+			break;
+		case 'viewFovX' : vfov2D.x = parseFloat(val); 	pAnal.setVFFov(vfov2D);		
+			break;
+		case 'viewFovY' : vfov2D.y = parseFloat(val); 	pAnal.setVFFov(vfov2D);
+			break;
+		case 'viewDist' : 	pAnal.setVFDistance(parseInt(val));
+			break;
+	}
+}
+
+
+
+
+
 
 
 
