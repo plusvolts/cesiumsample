@@ -37,6 +37,19 @@ $(function () {
 		$("#" + activeTab).fadeIn();
 	});
 
+	//	지도탭 컨트롤	
+	$(".tab_content_4").hide();
+	$(".tab_content_4:first").show();
+
+	$("ul.tabs_4 li").click(function () {
+		$("ul.tabs_4 li").removeClass("active").css({"color": "#7d7d7d","font-weight": "300"});
+		//$(this).addClass("active").css({"color": "darkred","font-weight": "bolder"});
+		$(this).addClass("active").css({"color": "#1d7fff","font-weight": "400"});
+		$(".tab_content_4").hide();
+		var activeTab = $(this).attr("rel");
+		$("#" + activeTab).fadeIn();
+	});
+
 	$(".acd_1_cts").hide();
 	//content 클래스를 가진 div를 표시/숨김(토글)
 	$(".acd_1").click(function()

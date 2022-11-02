@@ -50,14 +50,14 @@
 				<ul class="map_base">
 					<li>						
 						<label class="input_switch">
-							<input type="checkbox" id="selectFlag" checked>
+							<input type="checkbox" id="selectFlag">
 							<span class="input_slider round"></span>
 						</label>
 						<span class="title">건물선택</span>
 					</li>		
 					<li>						
 						<label class="input_switch">
-							<input type="checkbox" id="timeLineFlag" value="dd">
+							<input type="checkbox" id="timeLineFlag">
 							<span class="input_slider round"></span>
 						</label>
 						<span class="title">타임라인</span>
@@ -92,7 +92,7 @@
 					</li>					
 					<li>						
 						<label class="input_switch">
-							<input type="checkbox" id="baseLayerFlag">
+							<input type="checkbox" id="baseLayerFlag" checked>
 							<span class="input_slider round"></span>
 						</label>
 						<span class="title">지도선택</span>
@@ -441,7 +441,7 @@
 			<span>기본 객체 관리</span>
 		</h1>
 		<div class="sub3_container js_scroll">
-			<h3>객체 그리기(우클릭 종료)</h3>
+			<h3>객체 그리기(지도선택 ON 필수)</h3>
 				<button class="btn_2" onclick="drawInterection(1)">Point 그리기</button>					
 				<button class="btn_2" onclick="drawInterection(2)">LineString 그리기</button>					
 				<button class="btn_2" onclick="drawInterection(3)">Polygon 그리기</button>					
