@@ -46,11 +46,7 @@ function initUIEvent(){
 
 	})
 
-  // //Entity click 이벤트 해제
-  // viewer.selectedEntityChanged.addEventListener(function(e){
-  //   viewer.selectedEntity = undefined;
-  //   return false;
-  // })
+  this.viewer.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
 }
 
@@ -918,48 +914,50 @@ function drawInterection(num){
 
   DrawMode = num;
   if(drawHandler == undefined || drawHandler.isDestroyed()){
-    drawHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+    drawHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);//이벤트 핸들러 객체 생성
   }
   if(DrawMode == 0){//마우스 이동 모드 
-    drawHandler.destroy();
-    terminateShape();
+    drawHandler.destroy();//모든 이벤트 삭제
+    terminateShape();//기본객체 생성 초기화 
     return;
   }
 
-  drawHandler.setInputAction(function (event) {
-  // We use `viewer.scene.pickPosition` here instead of `viewer.camera.pickEllipsoid` so that
-  // we get the correct point when mousing over terrain.
-  const earthPosition = viewer.scene.pickPosition(event.position);
-  // `earthPosition` will be undefined if our mouse is not over the globe.
-  if (Cesium.defined(earthPosition)) {
-    if (activeShapePoints.length === 0) {
-      if(DrawMode == 1){createPoint(earthPosition, true); return;}
-      floatingPoint = createPoint(earthPosition, false);
+  drawHandler.setInputAction(function (event) {//좌클릭 이벤트 핸들러
+    const earthPosition = viewer.scene.pickPosition(event.position);
+
+    if (Cesium.defined(earthPosition)) {
+      if (activeShapePoints.length === 0) {
+        if(DrawMode == 1){
+          createPoint(earthPosition, true);//point 생성
+          return;
+          }
+        floatingPoint = createPoint(earthPosition, false);
+        activeShapePoints.push(earthPosition);//좌표 배열에 추가
+        const dynamicPositions = new Cesium.CallbackProperty(function () {
+          if (DrawMode === 3) {
+            return new Cesium.PolygonHierarchy(activeShapePoints);
+          }
+          return activeShapePoints;
+        }, false);
+        activeShape = drawShape(dynamicPositions);//객체 생성
+      }
+
       activeShapePoints.push(earthPosition);
-      const dynamicPositions = new Cesium.CallbackProperty(function () {
-        if (DrawMode === 3) {
-          return new Cesium.PolygonHierarchy(activeShapePoints);
-        }
-        return activeShapePoints;
-      }, false);
-      activeShape = drawShape(dynamicPositions);
     }
-    activeShapePoints.push(earthPosition);
-  }
 }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-drawHandler.setInputAction(function (event) {
+drawHandler.setInputAction(function (event) {//mousemove 이벤트 핸들러
   if (Cesium.defined(floatingPoint)) {
     const newPosition = viewer.scene.pickPosition(event.endPosition);
     if (Cesium.defined(newPosition)) {
-      floatingPoint.position.setValue(newPosition);
+      floatingPoint.position.setValue(newPosition);//floatingPoint의 위치 갱신
       activeShapePoints.pop();
       activeShapePoints.push(newPosition);
     }
   }
 }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-drawHandler.setInputAction(function (event) {
+drawHandler.setInputAction(function (event) {//우클릭 이벤트 핸들러
   terminateShape();
 }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
@@ -967,7 +965,7 @@ drawHandler.setInputAction(function (event) {
 
 function drawShape(positionData) {
   let shape;
-  if (DrawMode === 2) {
+  if (DrawMode === 2) {//line 생성
     shape = viewer.entities.add({
       polyline: {
         positions: positionData,
@@ -975,7 +973,7 @@ function drawShape(positionData) {
         width: 3,
       },
     });
-  } else if (DrawMode === 3) {
+  } else if (DrawMode === 3) {//polygon 생성
     shape = viewer.entities.add({
       polygon: {
         hierarchy: positionData,
@@ -991,25 +989,25 @@ function drawShape(positionData) {
 function terminateShape(){
 
   activeShapePoints.pop();
-  drawShape(activeShapePoints);
-  viewer.entities.remove(floatingPoint);
-  viewer.entities.remove(activeShape);
+  drawShape(activeShapePoints);//최종 기본 객체 생성
+  viewer.entities.remove(floatingPoint);//floatingPoint 삭제
+  viewer.entities.remove(activeShape);//기존의 기본 객체 삭제
   floatingPoint = undefined;
   activeShape = undefined;
   activeShapePoints = [];
 
 }
 
-function createPoint(cPos, tag){
+function createPoint(cPos, tag){//point 생성
   var option;
-  if(tag){
+  if(tag){//point
     option = {
       color : Cesium.Color.RED,
       pixelSize : 10,
       heightReference : Cesium.HeightReference.CLAMP_TO_GROUND,
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
     }
-  }else{
+  }else{//floatingpoint
     option = {
       color : Cesium.Color.WHITE,
       pixelSize : 5,
@@ -1027,30 +1025,6 @@ function createPoint(cPos, tag){
   }
 
   return point;
-}
-
-function drawLinestring(cPos){
-
-  var lineString = viewer.entities.add({
-    polyline : {
-      positions : cPos,
-      clampToGround : true,
-      width : 3
-    }
-  });  
-  return lineString;
-}
-
-function drawPolygon(cPos){
-
-  var polygon = viewer.entities.add({
-    polygon : {
-      hierarchy : cPos,
-      material: Cesium.Color.RED.withAlpha(0.5),
-    classificationType: Cesium.ClassificationType.BOTH,      
-    }
-  });  
-  return polygon;
 }
 
 function removeDrawEntity(){
