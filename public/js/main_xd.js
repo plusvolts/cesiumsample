@@ -1478,6 +1478,7 @@ function getSlopePlane(angle){
 	// Module.XDClearInputPoint();
 }
 
+//시곡면 분석 clear
 function clearSlopePlane(){
 	
 	Module.getSlope().clearAnalysisData();
@@ -1494,6 +1495,8 @@ function viewFireE(e){
 	Module.map.clearSelectObj();	// 건물 선택에 대한 효과 제거
 	Module.map.MapRender();		// 화면 랜더링 갱신
 }
+
+//가시권 마우스 선택
 function setViewshadeMode(val){
 	Module.XDSetMouseState(1);
 	Module.map.clearInputPoint();
@@ -1526,6 +1529,7 @@ function setViewshadeMode(val){
 
 }
 
+//가시권 분석 범위 조절
 function setViewOption(val, id){
 	var pAnal = GLOBAL.Analysis;
 	var vfov2D = pAnal.getVFFov();
