@@ -321,7 +321,7 @@
 		</div>
 	<div class="rightTab hide" id="d_algorithm">
 		<ul class="tabs_3">
-			<li rel="tab5" class="active firstmenu">현실 시뮬레이션</li>
+			<li rel="tab5" class="firstmenu active">현실 시뮬레이션</li>
 			<li rel="tab6">통계 표현</li>										
 		</ul>
 		<div class="tab_container">					
@@ -363,33 +363,78 @@
 	</div>
 
 	<div class="rightTab hide" id="d_analysis">
-		<h1>
-			<span>지도 분석</span>
-		</h1>
-		<div class="sub3_container js_scroll">
-			<h3>시곡면 분석</h3>
-			<ul class="underground_Facility">
-				<li>
-					<span class="color_legend" style="background: #43cf43"></span>
-					vworld 건물 추가
-					<label class="input_switch fl_r">
-						<input type="checkbox" onchange="addAnalysisBuilding(this.checked)">
-						<span class="input_slider round"></span>
-					</label>
-				</li>				
-				<li>
-					<span class="color_legend" style="background: #43cf43"></span>
-					분석라인 입력
-					<label class="input_switch fl_r">
-						<input type="checkbox" onchange="setMouseAnlaysis(this.checked)">
-						<span class="input_slider round"></span>
-					</label>
-				</li>
-			</ul>
-			분석 범위
-			<input id="slopeRange" type="range" max="100" min="0" step="10" value="60" style="width:100%" onchange="getSlopePlane(this.value)"><br/>				
-			<button class="btn_2" onclick="getSlopePlane()">시곡면 분석</button>								
-			<button class="btn_2" onclick="clearSlopePlane()">Clear</button>
+		<ul class="tabs_4">
+			<li rel="tab7" class="active firstmenu">시곡권 분석</li>
+			<li rel="tab8">가시권 분석</li>										
+		</ul>
+		<div class="tab_container">					
+			<div id="tab7" class="tab_content_4 js_scroll">					
+				<div class="sub2_container js_scroll">							
+					<h3>시곡면 분석</h3>
+					<ul class="underground_Facility">
+						<li>
+							<span class="color_legend" style="background: #ffff96"></span>
+							vworld 건물 추가
+							<label class="input_switch fl_r">
+								<input type="checkbox" onchange="addAnalysisBuilding(this.checked)">
+								<span class="input_slider round"></span>
+							</label>
+						</li>				
+						<li>
+							<span class="color_legend" style="background: #ffff96"></span>
+							분석라인 입력
+							<label class="input_switch fl_r">
+								<input type="checkbox" onchange="setMouseAnlaysis(this.checked)">
+								<span class="input_slider round"></span>
+							</label>
+						</li>
+					</ul>
+					분석 범위
+					<input id="slopeRange" type="range" max="100" min="0" step="10" value="60" style="width:100%" onchange="getSlopePlane(this.value)"><br/>				
+					<button class="btn_2" onclick="getSlopePlane()">시곡면 분석</button>								
+					<button class="btn_2" onclick="clearSlopePlane()">Clear</button>
+				</div>
+			</div>
+			<div id="tab8" class="tab_content_4 js_scroll hide">					
+				<div class="sub2_container js_scroll">							
+					<h3>가시권 분석</h3>
+					<ul class="underground_Facility">
+						<li>
+							<span class="color_legend" style="background: #ffff96"></span>
+							가시권 마우스 선택
+							<label class="input_switch fl_r">
+								<input type="checkbox" onchange="setViewshadeMode(this.checked)">
+								<span class="input_slider round"></span>
+							</label>
+						</li>		
+					</ul>
+					<h3>가시권 범위 조절</h3>
+					<ul class="underground_Facility">
+						<li>
+							Pan 조절
+							<input id="viewPan" class="viewOptions" type="range" min="0" max="365" value="45" step="5"  style="width:100%" >				
+						</li>
+						<li>
+							Tilt 조절
+							<input id="viewTilt" class="viewOptions" type="range" min="-88" max="88" value="0" step="5" style="width:100%" >				
+						</li>
+						<li>
+							Fov X 조절
+							<input id="viewFovX" class="viewOptions" type="range" min="30" max="130" value="45" step="5"  style="width:100%" >				
+						</li>
+						<li>
+							Fov Y 조절
+							<input id="viewFovY" class="viewOptions" type="range" min="30" max="130" value="45" step="5"  style="width:100%" >		
+						</li>
+						<li>
+							가시거리 조절
+							<input id="viewDist" class="viewOptions" type="range" min="300" max="2000" value="1000" step="100"  style="width:100%" >	
+						</li>
+					</ul>
+
+				</div>
+			</div>
+		</div>
 			
 		</div>
 	</div>
