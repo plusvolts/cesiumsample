@@ -113,13 +113,13 @@ function initUIEvent(){
 		if(this.innerText != '분석'){
 			Module.XDEMapRemoveLayer("facility_build");
 			Module.XDSetMouseState(1);
-			Module.getMap().clearInputPoint();
+			Module.map.clearInputPoint();
 			Module.getSlope().clearAnalysisData();
-			Module.getMap().clearSelectObj();
+			Module.map.clearSelectObj();
 			Module.getUserLayer().removeAll();
 
-			Module.getAnalysis().setVFMode(false);					// 가시권 3D 표현 여부 설정
-			Module.getAnalysis().setVFCreateClickMode(false);	
+			GLOBAL.Analysis.setVFMode(false);					// 가시권 3D 표현 여부 설정
+			GLOBAL.Analysis.setVFCreateClickMode(false);	
 
 			$('#tab7 input[type=checkbox]').attr('checked', false);
 			$('#tab8 input[type=checkbox]').attr('checked', false);
@@ -278,7 +278,7 @@ function setMouseLClickEvent(val){
 			var screenPosition = new Module.JSVector2D(e.x-405, e.y);
 		
 			// 화면->지도 좌표 변환
-			var mapPosition = Module.getMap().ScreenToMapPointEX(screenPosition);
+			var mapPosition = Module.map.ScreenToMapPointEX(screenPosition);
 			lon = parseFloat(mapPosition.Longitude).toFixed(6);
 			lat = parseFloat(mapPosition.Latitude).toFixed(6);
 
@@ -467,8 +467,7 @@ function drawLine(){
 
 	Module.canvas.onmouseup = function(e){
 
-		var map = Module.getMap();
-		var inputPoint = map.getInputPoints(); //입력된 좌표 리스트 반환
+		var inputPoint = Module.map.getInputPoints(); //입력된 좌표 리스트 반환
 	
 		if(inputPoint.count() < 2){//입력된 좌표가 2개가 아닐 경우 리턴
 			return;
@@ -503,7 +502,7 @@ function drawLine(){
 		//레이어에 추가
 		layer.addObject(line, 0);
 
-		map.clearInputPoint();//입력점 초기화
+		Module.map.clearInputPoint();//입력점 초기화
 		Module.XDSetMouseState(1);//마우스 지도이동 모드
 		Module.canvas.onmouseup = 'return false;';//onmouseup 이벤트 핸들러 해제
 	} 
@@ -527,8 +526,7 @@ function drawPolygon(){
 
 	Module.XDSetMouseState(21);//마우스 라인 입력 모드
 	Module.canvas.ondblclick = function(e){
-		var map = Module.getMap();
-		var inputPoint = map.getInputPoints();//입력된 좌표 리스트 반환
+		var inputPoint = Module.map.getInputPoints();//입력된 좌표 리스트 반환
 		var inputPointCnt = inputPoint.count(); // 입력된 좌표의 개수 반환
 	
 		
@@ -579,7 +577,7 @@ function drawPolygon(){
 		layer.addObject(polygon, 1);
 
 		Module.canvas.ondblclick = 'return false;'; // ondblclick이벤트 핸들러 해제
-		map.clearInputPoint(); // 입력점 초기화
+		Module.map.clearInputPoint(); // 입력점 초기화
 		Module.XDSetMouseState(1); // 마우스 지도 이도 ㅇ모드
 
 	}
@@ -633,7 +631,7 @@ function addVWorldBuilding(val){
 		Module.XDEMapCreateLayer("facility_build", "https://xdworld.vworld.kr", 0, true, true, false, 9, 0, 15);
 		Module.setVisibleRange("facility_build", 3.0, 100000.0);
 		//심플모드
-		Module.getMap().setSimpleMode(true);
+		Module.map.setSimpleMode(true);
 
 	}else{
 		//vworld 건물 레이어 삭제
@@ -664,9 +662,9 @@ function removeVWorldBuilding(val){
 			
 			if(e.layerName == 'facility_build'){
 				layerlist.nameAtLayer('facility_build').keyAtObject(e.objKey).setVisible(false); //가시화 옵션 설정
-				Module.getMap().clearSelectObj(); // 객체 선택 해제
+				Module.map.clearSelectObj(); // 객체 선택 해제
 			}else{
-				Module.getMap().clearSelectObj();
+				Module.map.clearSelectObj();
 			}
 		})
 	}
@@ -681,9 +679,9 @@ function setBuildingTexture(val){
 	}
 
 	if(val){
-		Module.getMap().setSimpleMode(false);//심플모드 해제
+		Module.map.setSimpleMode(false);//심플모드 해제
 	}else{
-		Module.getMap().setSimpleMode(true);
+		Module.map.setSimpleMode(true);
 	}
 }
 
@@ -927,7 +925,7 @@ function move(_index) {
 	
 	// 다음 이동 점의 지형 고도 반환 후 타겟 오브젝트 이동
 	var position = GLOBAL.MOVE_PATH.get(_index);
-	var altitude = Module.getMap().getTerrHeightFast(position.Longitude, position.Latitude);
+	var altitude = Module.map.getTerrHeightFast(position.Longitude, position.Latitude);
 	GLOBAL.TRACE_TARGET.getObject().setPosition(new Module.JSVector3D(position.Longitude, position.Latitude, altitude));
 	
 	// 시간 간격으로 두고 다음 지점으로 이동
@@ -945,7 +943,7 @@ function createPath(_pathPoint) {
 		input.push(new Module.JSVector3D(_pathPoint[i][0], _pathPoint[i][1], _pathPoint[i][2]));
 	}
 
-	return Module.getMap().GetPathIntervalPositions(input, 1.0, false);
+	return Module.map.GetPathIntervalPositions(input, 1.0, false);
 }
 
 
@@ -976,7 +974,7 @@ function setMouseRClickEvent(val, id){
 					let layer = layerList.nameAtLayer(e.layerName);
 					layer.removeAtKey(e.objKey);//오브젝트 삭제
 				}else{
-					Module.getMap().clearSelectObj();
+					Module.map.clearSelectObj();
 				}
 			});
 		}
@@ -992,7 +990,7 @@ function setMouseRClickEvent(val, id){
 				return;
 			}
 			
-			var mapPosition = Module.getMap().ScreenToMapPointEX(new Module.JSVector2D(e.x-405, e.y));
+			var mapPosition = Module.map.ScreenToMapPointEX(new Module.JSVector2D(e.x-405, e.y));
 			
 			let lon = parseFloat(mapPosition.Longitude).toFixed(6);
 			let lat = parseFloat(mapPosition.Latitude).toFixed(6);
@@ -1192,7 +1190,7 @@ function addShadowBuilding(val){
 	if(val){
 		Module.XDEMapCreateLayer("facility_build", "https://xdworld.vworld.kr", 0, true, true, false, 9, 0, 15)//vworld 건물 레이어 생성
 		Module.setVisibleRange("facility_build", 3.0, 100000.0);
-		Module.getMap().setSimpleMode(false);//심플모드
+		Module.map.setSimpleMode(false);//심플모드
 
 		GLOBAL.Analysis.setAllObjectRenderShadow(true);//모든 객체의 그림자를 그리도록 설정
 		GLOBAL.Analysis.setShadowSimulTerm(30);//그림자 시뮬레이션 시간 간격 설정
@@ -1443,7 +1441,7 @@ function addAnalysisBuilding(val){
 	if(val){
 		Module.XDEMapCreateLayer("facility_build", "https://xdworld.vworld.kr", 0, true, true, false, 9, 0, 15)//vworld 건물 레이어 생성
 		Module.setVisibleRange("facility_build", 3.0, 100000.0);
-		Module.getMap().setSimpleMode(false);
+		Module.map.setSimpleMode(false);
 
 	}else{
 		Module.XDEMapRemoveLayer("facility_build");//vworld 건물 레이어 삭제
@@ -1464,7 +1462,7 @@ function setMouseAnlaysis(val){
 
 function getSlopePlane(angle){
 	Module.getSlope().clearAnalysisData();
-	Module.getMap().clearSelectObj();
+	Module.map.clearSelectObj();
 	Module.getUserLayer().removeAll();
 	
 	if(angle == null){
@@ -1475,7 +1473,7 @@ function getSlopePlane(angle){
 	
 	var color = new Module.createColor();	// 시곡면 분석 색상 지정
 	color.setARGB(180, 255, 0, 0);
-	Module.getAnalysis().createSlopePlane(angle, color);	// 시곡면 분석 퍼짐 각도, 색상 설정
+	GLOBAL.Analysis.createSlopePlane(angle, color);	// 시곡면 분석 퍼짐 각도, 색상 설정
 	
 	// Module.XDClearInputPoint();
 }
@@ -1483,7 +1481,7 @@ function getSlopePlane(angle){
 function clearSlopePlane(){
 	
 	Module.getSlope().clearAnalysisData();
-	Module.getMap().clearSelectObj();
+	Module.map.clearSelectObj();
 	Module.getUserLayer().removeAll();
 	Module.XDClearInputPoint();
 	Module.XDRenderData();
@@ -1491,18 +1489,18 @@ function clearSlopePlane(){
 
 var vFlag = false;
 function viewFireE(e){
-	var pAnal = Module.getAnalysis();
+	var pAnal = GLOBAL.Analysis;
 	pAnal.setVFCreateClickMode(false);	// 건물이 선택되면 이후 클릭에서 가시권 인식을 안한다.
-	Module.getMap().clearSelectObj();	// 건물 선택에 대한 효과 제거
-	Module.getMap().MapRender();		// 화면 랜더링 갱신
+	Module.map.clearSelectObj();	// 건물 선택에 대한 효과 제거
+	Module.map.MapRender();		// 화면 랜더링 갱신
 }
 function setViewshadeMode(val){
 	Module.XDSetMouseState(1);
 	Module.map.clearInputPoint();
 
 	var voEl = document.getElementsByClassName('viewOptions');
-	Module.getAnalysis().setVFMode(val);					// 가시권 3D 표현 여부 설정
-	Module.getAnalysis().setVFCreateClickMode(val);		// 마우스 클릭시 가시권 인식 설정
+	GLOBAL.Analysis.setVFMode(val);					// 가시권 3D 표현 여부 설정
+	GLOBAL.Analysis.setVFCreateClickMode(val);		// 마우스 클릭시 가시권 인식 설정
 	if(val){
 		Module.canvas.addEventListener("Fire_EventSelectedObject", viewFireE)
 		for(var i = 0; i<voEl.length; i++){
@@ -1529,7 +1527,7 @@ function setViewshadeMode(val){
 }
 
 function setViewOption(val, id){
-	var pAnal = Module.getAnalysis();
+	var pAnal = GLOBAL.Analysis;
 	var vfov2D = pAnal.getVFFov();
 	switch(id){
 		case 'viewPan':pAnal.setVFPan(parseInt(val));
