@@ -1460,10 +1460,11 @@ function setMouseAnlaysis(val){
 	}
 }
 
+//시곡면 분석
 function getSlopePlane(angle){
 	Module.getSlope().clearAnalysisData();
-	Module.map.clearSelectObj();
-	Module.getUserLayer().removeAll();
+	Module.map.clearSelectObj(); //선택된 객체 해제
+	Module.getUserLayer().removeAll(); //시곡면 삭제
 	
 	if(angle == null){
 		angle = Number($('#slopeRange').val());
@@ -1475,15 +1476,14 @@ function getSlopePlane(angle){
 	color.setARGB(180, 255, 0, 0);
 	GLOBAL.Analysis.createSlopePlane(angle, color);	// 시곡면 분석 퍼짐 각도, 색상 설정
 	
-	// Module.XDClearInputPoint();
 }
 
 //시곡면 분석 clear
 function clearSlopePlane(){
 	
 	Module.getSlope().clearAnalysisData();
-	Module.map.clearSelectObj();
-	Module.getUserLayer().removeAll();
+	Module.map.clearSelectObj(); // 선택된 객체 해제
+	Module.getUserLayer().removeAll(); // 시곡면 삭제
 	Module.XDClearInputPoint();
 	Module.XDRenderData();
 }
@@ -1505,8 +1505,8 @@ function setViewshadeMode(val){
 	GLOBAL.Analysis.setVFMode(val);					// 가시권 3D 표현 여부 설정
 	GLOBAL.Analysis.setVFCreateClickMode(val);		// 마우스 클릭시 가시권 인식 설정
 	if(val){
-		Module.canvas.addEventListener("Fire_EventSelectedObject", viewFireE)
-		for(var i = 0; i<voEl.length; i++){
+		Module.canvas.addEventListener("Fire_EventSelectedObject", viewFireE)//객체 선택 이벤트 
+		for(var i = 0; i<voEl.length; i++){//가시권 속성 조절 바 이벤트
 			voEl[i].onmousedown = function(e){vFlag = true;}
 			voEl[i].onmousemove = function(e){
 				if(vFlag){
@@ -1534,15 +1534,22 @@ function setViewOption(val, id){
 	var pAnal = GLOBAL.Analysis;
 	var vfov2D = pAnal.getVFFov();
 	switch(id){
-		case 'viewPan':pAnal.setVFPan(parseInt(val));
+		case 'viewPan': 
+			pAnal.setVFPan(parseInt(val));
 			break;
-		case 'viewTilt' : pAnal.setVFTilt(parseInt(val));
+		case 'viewTilt' : 
+			pAnal.setVFTilt(parseInt(val));
 			break;
-		case 'viewFovX' : vfov2D.x = parseFloat(val); 	pAnal.setVFFov(vfov2D);		
+		case 'viewFovX' : 
+			vfov2D.x = parseFloat(val); 	
+			pAnal.setVFFov(vfov2D);		
 			break;
-		case 'viewFovY' : vfov2D.y = parseFloat(val); 	pAnal.setVFFov(vfov2D);
+		case 'viewFovY' : 
+			vfov2D.y = parseFloat(val); 	
+			pAnal.setVFFov(vfov2D);
 			break;
-		case 'viewDist' : 	pAnal.setVFDistance(parseInt(val));
+		case 'viewDist' : 	
+			pAnal.setVFDistance(parseInt(val));
 			break;
 	}
 }

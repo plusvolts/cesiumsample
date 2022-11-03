@@ -47,7 +47,9 @@ function initUIEvent(){
 	})
 
   this.viewer.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-
+  if(!$('#baseLayerFlag').prop("checked")){
+    viewer.scene.globe.depthTestAgainstTerrain = true;
+  }
 }
 
 
@@ -923,16 +925,16 @@ function drawInterection(num){
   }
 
   drawHandler.setInputAction(function (event) {//좌클릭 이벤트 핸들러
-    const earthPosition = viewer.scene.pickPosition(event.position);
+    const mPosition = viewer.scene.pickPosition(event.position);
 
-    if (Cesium.defined(earthPosition)) {
+    if (Cesium.defined(mPosition)) {
       if (activeShapePoints.length === 0) {
         if(DrawMode == 1){
-          createPoint(earthPosition, true);//point 생성
+          createPoint(mPosition, true);//point 생성
           return;
           }
-        floatingPoint = createPoint(earthPosition, false);
-        activeShapePoints.push(earthPosition);//좌표 배열에 추가
+        floatingPoint = createPoint(mPosition, false);
+        activeShapePoints.push(mPosition);//좌표 배열에 추가
         const dynamicPositions = new Cesium.CallbackProperty(function () {
           if (DrawMode === 3) {
             return new Cesium.PolygonHierarchy(activeShapePoints);
@@ -942,7 +944,7 @@ function drawInterection(num){
         activeShape = drawShape(dynamicPositions);//객체 생성
       }
 
-      activeShapePoints.push(earthPosition);
+      activeShapePoints.push(mPosition);
     }
 }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -989,9 +991,9 @@ function drawShape(positionData) {
 function terminateShape(){
 
   activeShapePoints.pop();
-  drawShape(activeShapePoints);//최종 기본 객체 생성
+  drawShape(activeShapePoints);//최종 객체 생성
   viewer.entities.remove(floatingPoint);//floatingPoint 삭제
-  viewer.entities.remove(activeShape);//기존의 기본 객체 삭제
+  viewer.entities.remove(activeShape);//기존 객체 삭제
   floatingPoint = undefined;
   activeShape = undefined;
   activeShapePoints = [];
@@ -1027,8 +1029,9 @@ function createPoint(cPos, tag){//point 생성
   return point;
 }
 
+//기본객체 전체 삭제
 function removeDrawEntity(){
-  viewer.entities.removeAll();
+  viewer.entities.removeAll();//엔티티 전체 삭제
   terminateShape();
   drawHandler.destroy();//이벤트 핸들러 해제
   
