@@ -167,7 +167,7 @@ function searchPlace(pageNum){
         , type: 'PLACE'
         , format: "json"
         , errorformat: "json"
-        , key: "79D419E6-64C6-3B88-846C-1CEB694E66BB"
+        , key: "767B7ADF-10BA-3D86-AB7E-02816B5B92E9"
     }
 
 
@@ -228,14 +228,15 @@ function searchPlace(pageNum){
 }
 
 /**검색 위치 마크 */
-function setSearchPOINT(x, y, i){
-
+function setSearchPOINT(x, y, i){  
   viewer.entities.add({
     name : "searchMark"+i,
     position : Cesium.Cartesian3.fromDegrees(Number(x), Number(y)),
     billboard : {
       image : '/img/num/icon_list_'+(i+1)+'.png',
-    },
+      heightReference : Cesium.HeightReference.CLAMP_TO_GROUND,      
+      verticalOrigin :  Cesium.VerticalOrigin.BOTTOM
+    }
   })
 
 }
@@ -411,6 +412,7 @@ function stopCarAnimation(){
 
 var rClickEvent;
 var rClickEventType = false;
+var featuare;
 function setMouseRClickEvent(cFlag, inptId){  
   if(eventHandler == undefined){
     eventHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -430,12 +432,15 @@ function setMouseRClickEvent(cFlag, inptId){
             
             if (!Cesium.defined(feature)) { //선택 지점에 객체 없으면 리턴
               return;
-            }else{
-              //##실습10. 선택 객체 숨기는 소스 추가
-              // feature.show = false;         //오른쪽 마우스클릭 선택객체 숨기기
-              //##실습10. 선택 객체 숨기는 소스 추가
-
+            }else{              
+              featuare = feature;
+              if(featuare instanceof Cesium.Cesium3DTileFeature){
+                //##실습10. 선택 객체 숨기는 소스 추가(3dtiles 건물)
+                feature.show = false;         //오른쪽 마우스클릭 선택객체 숨기기                
+              }else{
+                //##실습10. 선택 객체 숨기는 소스 추가(사용자 추가 건물)
               viewer.entities.removeById(feature.id._id);//오른쪽 마우스클릭 선택객체 숨기기
+              }
             }            
           }else  if(rClickEventType == 'RCL_MAKE'){ //오른쪽 클릭으로 객체 생성
             rClickMake(movement);
@@ -498,7 +503,8 @@ function addWmsLayer(cFlag,layerName){
                 //http://api.vworld.kr/req/wms
                 url : '/proxywms',        //프록시 주소
                 parameters: {
-                    key : 'F1D04FBB-DBB3-3F07-9B45-2FA496499F9B', //api key
+                    //key : 'F1D04FBB-DBB3-3F07-9B45-2FA496499F9B', //api key
+                    key : '767B7ADF-10BA-3D86-AB7E-02816B5B92E9', //api key
                     version : '1.3.0',                            //wms version
                     domain: 'localhost:8080',                     //api 신청 주소
                     format : 'image/png',
@@ -660,8 +666,8 @@ function getClusterData(){
                     cluster.label.show = false;
                     cluster.billboard.show = true;
                     cluster.billboard.id = cluster.label.id;
-                    cluster.billboard.verticalOrigin =
-                      Cesium.VerticalOrigin.BOTTOM;
+                    cluster.billboard.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
+                    cluster.billboard.verticalOrigin = Cesium.VerticalOrigin.BOTTOM;
           
                     if (clusteredEntities.length >= 50) {
                       cluster.billboard.image = pin50;
