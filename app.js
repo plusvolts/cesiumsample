@@ -9,22 +9,9 @@ const qs = require('querystring');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/mapxd', function(req,res){
-    res.sendFile(path.join(__dirname, 'public', 'html/mapxd.html'))
-});
-
 app.get('/map', function(req,res){
     res.sendFile(path.join(__dirname, 'public', 'html/map.html'))
 });
-
-app.get('/xdmap', function(req,res){
-    res.sendFile(path.join(__dirname, 'public', 'html/xdmap.html'))
-});
-
-app.get('/maptest', function(req,res){
-    res.sendFile(path.join(__dirname, 'public', 'html/map_before.html'))
-});
-
 
 const wmsUrl = "http://api.vworld.kr/req/wms";
 const wfsUrl = "http://api.vworld.kr/req/wfs";
